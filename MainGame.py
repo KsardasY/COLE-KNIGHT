@@ -60,6 +60,7 @@ def generate_level(level):
         for j in range(len(level[i])):
             if level[i][j] == '#' and level[i - 1][j] == '.':
                 level[i][j] = '^'
+    level.append('*' * len(level[-1]))
     new_player, x, y = None, None, None
     for y in range(len(level)):
         for x in range(len(level[y])):
@@ -91,9 +92,9 @@ class Tile(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
-        self.health = 5
-        self.protection = 5
-        self.bullets = 200
+        self.health = HEALTH
+        self.protection = PROTECTION
+        self.bullets = BULLETS
         self.image = player_image
         self.rect = self.image.get_rect().move(tile_width * pos_x + 18, tile_height * pos_y + 19)
 
