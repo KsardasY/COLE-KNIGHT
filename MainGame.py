@@ -92,11 +92,37 @@ class Tile(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
+        self.c = 0
         self.health = HEALTH
         self.protection = PROTECTION
         self.bullets = BULLETS
-        self.image = player_image
-        self.rect = self.image.get_rect().move(tile_width * pos_x + 18, tile_height * pos_y + 19)
+        if pygame.mouse.get_pos()[0] > tile_width * pos_x + 18:
+            self.image = player_image
+        else:
+            self.image = player_image1
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+    def animation(self):
+        if r or l or h or d:
+            if self.c < 25:
+                if pygame.mouse.get_pos()[0] > self.rect.x + 18:
+                    self.image = player_animation[0]
+                else:
+                    self.image = player_animation1[0]
+            elif self.c < 50:
+                if pygame.mouse.get_pos()[0] > self.rect.x + 18:
+                    self.image = player_animation[1]
+                else:
+                    self.image = player_animation1[1]
+            else:
+                self.c = -1
+            self.c += 1
+        else:
+            self.c = 0
+            if pygame.mouse.get_pos()[0] > self.rect.x + 18:
+                self.image = player_image
+            else:
+                self.image = player_image1
 
     def update(self):
         if l:
@@ -171,6 +197,10 @@ COLOR = {'black': pygame.Color('black'), 'white': pygame.Color('white'), 'red': 
 tile_images = {'wall': load_image('wall.png'), 'empty': load_image('flour.png'), 'dwall': load_image('d_wall.png'),
                'hwall': load_image('wall.png')}
 player_image = load_image('hero.png', -1)
+player_animation = (load_image('heromove1.png', -1), load_image('heromove2.png', -1))
+player_image1 = pygame.transform.flip(load_image('hero.png', -1), True, False)
+player_animation1 = (pygame.transform.flip(load_image('heromove1.png', -1), True, False),
+                     pygame.transform.flip(load_image('heromove2.png', -1), True, False))
 tile_width = 50
 tile_height = 25
 
@@ -218,6 +248,7 @@ while running:
                 d = False
             elif event.key == pygame.K_d:
                 r = False
+    player.animation()
     player.update()
     camera.update(player)
     for sprite in all_sprites:
