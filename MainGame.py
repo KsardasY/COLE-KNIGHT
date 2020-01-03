@@ -41,52 +41,40 @@ def load_level(filename):
 
 
 def generate_level(level):
-    i = 0
-    level = list(map(lambda x: list(x), level))
-    while i < len(level):
-        s = []
-        for j in range(len(level[i])):
-            if level[i][j] != '@':
-                s.append(level[i][j])
-            else:
-                s.append('.')
-        level.insert(i + 1, s)
-        i += 2
-    for i in range(1, len(level)):
-        for j in range(len(level[i])):
-            if level[i][j] == '.' and level[i - 1][j] == '#':
-                level[i][j] = '*'
-    for i in range(1, len(level)):
-        for j in range(len(level[i])):
-            if level[i][j] == '#' and level[i - 1][j] == '.':
-                level[i][j] = '^'
-    level.append('*' * len(level[-1]))
     new_player, x, y = None, None, None
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '.':
                 Tile('empty', x, y)
             elif level[y][x] == '#':
-                Tile('wall', x, y)
-            elif level[y][x] == '^':
-                Tile('hwall', x, y)
+                Tile('wall1', x, y)
+                Tile('d_wall', x, y)
             elif level[y][x] == '@':
                 Tile('empty', x, y)
-                new_player = Player(x, y)
-            elif level[y][x] == '*':
-                Tile('dwall', x, y)
-    return new_player, x, y
+                px, py = x, y
+    new_player = Player(px, py)
+    for y in range(len(level)):
+        for x in range(len(level[y])):
+            if level[y][x] == '#':
+                Tile('wall', x, y)
+    # вернем игрока, а также размер поля в клетках
+    return new_player, px, py
 
 
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(tiles_group, all_sprites)
-        if tile_type == 'wall':
-            walls_group.add(self)
-        if tile_type == 'hwall':
-            hwalls_group.add(self)
         self.image = tile_images[tile_type]
-        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+        if tile_type == 'wall1':
+            walls_group.add(self)
+            self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+        elif tile_type == "wall":
+            self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y - 16)
+            hwalls_group.add(self)
+        elif tile_type == "d_wall":
+            self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y + 16)
+        else:
+            self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
 
 class Player(pygame.sprite.Sprite):
@@ -194,15 +182,15 @@ COLOR = {'black': pygame.Color('black'), 'white': pygame.Color('white'), 'red': 
          'green': pygame.Color('green'), 'blue': pygame.Color('blue'), 'yellow': pygame.Color('yellow'),
          'cyan': pygame.Color('cyan'), 'magenta': pygame.Color('magenta'), 'azure': (150, 255, 255)}
 
-tile_images = {'wall': load_image('wall.png'), 'empty': load_image('flour.png'), 'dwall': load_image('d_wall.png'),
-               'hwall': load_image('wall.png')}
+tile_images = {'wall': load_image('wall2.png', -1), 'empty': load_image('flour2.png'), 'd_wall': load_image('d_wall2.png'),
+               'hwall': load_image('wall.png'), "helth": load_image('helth.png'), "wall1": load_image("d_wall2.png")}
 player_image = load_image('hero.png', -1)
 player_animation = (load_image('heromove1.png', -1), load_image('heromove2.png', -1))
 player_image1 = pygame.transform.flip(load_image('hero.png', -1), True, False)
 player_animation1 = (pygame.transform.flip(load_image('heromove1.png', -1), True, False),
                      pygame.transform.flip(load_image('heromove2.png', -1), True, False))
-tile_width = 50
-tile_height = 25
+tile_width = 32
+tile_height = 32
 
 player = None
 hwalls_group = pygame.sprite.Group()
