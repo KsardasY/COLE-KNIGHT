@@ -49,6 +49,9 @@ def generate_level(level):
             elif level[y][x] == '#':
                 Tile('wall1', x, y)
                 Tile('d_wall', x, y)
+            elif level[y][x] == "^":
+                Weapon(2, 1, 'colt2.png', x, y, 0)
+                Tile('empty', x, y)
             elif level[y][x] == '@':
                 Tile('empty', x, y)
                 px, py = x, y
@@ -187,6 +190,38 @@ class Weapon(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(pos_x * tile_width, pos_y * tile_height)
         self.butt = butt
 
+    def update(*args):
+        for weap in weapons_group:
+            if pygame.sprite.spritecollideany(weap, player_group):
+                if len(player.weapons) != 2:
+                    player.weapon.remove(hero_weapon_group)
+                    player.weapon = weap
+                    hero_weapon_group.add(player.weapon)
+                    weap.remove(weapons_group)
+                    player.weapons.append(weap)
+                    player.number_of_weapon = 1
+                else:
+                    weapons_group.add(player.weapon)
+                    player.weapon.remove(hero_weapon_group)
+                    del player.weapons[player.number_of_weapon]
+                    player.weapon = weap
+                    hero_weapon_group.add(player.weapon)
+                    weap.remove(weapons_group)
+                    player.weapons.insert(player.number_of_weapon, weap)
+
+    def change(*args):
+        if len(player.weapons) == 2:
+            if player.number_of_weapon == 0:
+                player.weapon.remove(hero_weapon_group)
+                player.weapon = player.weapons[1]
+                hero_weapon_group.add(player.weapon)
+                player.number_of_weapon = 1
+            elif player.number_of_weapon == 1:
+                player.weapon.remove(hero_weapon_group)
+                player.weapon = player.weapons[0]
+                hero_weapon_group.add(player.weapon)
+                player.number_of_weapon = 0
+
 
 class Potion(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
@@ -257,6 +292,7 @@ BULLET_POTION1 = 30
 BULLET_POTION2 = 60
 BULLET_POTION3 = 120
 colt = Weapon(2, 1, 'colt.png', 1, 1, 0)
+colt3 = Weapon(2, 1, 'colt3.png', 1, 1, 0)
 hero_weapon_group.add(colt)
 colt.remove(weapons_group)
 player, level_x, level_y = generate_level(load_level('map.txt'))
@@ -293,6 +329,11 @@ while running:
                 r = False
             if event.key == pygame.K_f:
                 Potion.update()
+                Weapon.update()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 4 or event.button == 5:
+                Weapon.change()
+
     player.animation()
     player.update()
     camera.update(player)
