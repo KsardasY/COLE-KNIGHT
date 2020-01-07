@@ -188,6 +188,31 @@ class Weapon(pygame.sprite.Sprite):
         self.butt = butt
 
 
+class Potion(pygame.sprite.Sprite):
+    def __init__(self, tile_type, pos_x, pos_y):
+        super().__init__(potion_group, all_sprites)
+        if tile_type == "health1":
+            self.health_potion = HEALTH_POTION1
+            self.bullets_potion = 0
+        elif tile_type == "bullet1":
+            self.health_potion = 0
+            self.bullets_potion = BULLET_POTION1
+        self.image = potion_images[tile_type]
+        potion_group.add(self)
+        self.rect = self.image.get_rect().move(tile_width * pos_x + 10, tile_height * pos_y + 10)
+
+    def update(*args):
+        for pot in potion_group:
+            if pygame.sprite.spritecollideany(pot, player_group):
+                player.health += pot.health_potion
+                if player.health > HEALTH:
+                    player.health = HEALTH
+                player.bullets += pot.bullets_potion
+                if player.bullets > BULLETS:
+                    player.bullets = BULLETS
+                pot.kill()
+
+
 FPS = 200
 pygame.init()
 WIDTH = 500
@@ -200,8 +225,8 @@ COLOR = {'black': pygame.Color('black'), 'white': pygame.Color('white'), 'red': 
          'orange': pygame.Color('orange')}
 
 tile_images = {'wall': load_image('wall.png', -1), 'empty': load_image('flour.png'),
-               'd_wall': load_image('d_wall.png'), 'health': load_image('health.png'),
-               'wall1': load_image('d_wall.png')}
+               'd_wall': load_image('d_wall.png'), 'wall1': load_image('d_wall.png')}
+potion_images = {"health1": load_image('health1.png', -1), "bullet1": load_image('bullet1.png', -1)}
 player_image = load_image('hero.png', -1)
 player_animation = (load_image('heromove1.png', -1), load_image('heromove2.png', -1))
 player_image1 = pygame.transform.flip(load_image('hero.png', -1), True, False)
@@ -211,6 +236,7 @@ tile_width = 32
 tile_height = 32
 
 player = None
+potion_group = pygame.sprite.Group()
 weapons_group = pygame.sprite.Group()
 hero_weapon_group = pygame.sprite.GroupSingle()
 hwalls_group = pygame.sprite.Group()
@@ -224,6 +250,12 @@ start_screen()
 HEALTH = 5
 PROTECTION = 5
 BULLETS = 200
+HEALTH_POTION1 = 1
+HEALTH_POTION2 = 2
+HEALTH_POTION3 = 4
+BULLET_POTION1 = 30
+BULLET_POTION2 = 60
+BULLET_POTION3 = 120
 colt = Weapon(2, 1, 'colt.png', 1, 1, 0)
 hero_weapon_group.add(colt)
 colt.remove(weapons_group)
@@ -259,12 +291,15 @@ while running:
                 d = False
             elif event.key == pygame.K_d:
                 r = False
+            if event.key == pygame.K_f:
+                Potion.update()
     player.animation()
     player.update()
     camera.update(player)
     for sprite in all_sprites:
         camera.apply(sprite)
     tiles_group.draw(screen)
+    potion_group.draw(screen)
     walls_group.draw(screen)
     weapons_group.draw(screen)
     player_group.draw(screen)
