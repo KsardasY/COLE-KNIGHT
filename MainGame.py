@@ -57,7 +57,6 @@ def generate_level(level):
         for x in range(len(level[y])):
             if level[y][x] == '#':
                 Tile('wall', x, y)
-    # вернем игрока, а также размер поля в клетках
     return new_player, px, py
 
 
@@ -89,6 +88,11 @@ class Player(pygame.sprite.Sprite):
         else:
             self.image = player_image1
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+        self.number_of_weapon = 0
+        self.weapons = [colt]
+        self.weapon = self.weapons[self.number_of_weapon]
+        self.weapon.remove(weapons_group)
+        hero_weapon_group.add(self.weapon)
 
     def animation(self):
         if r or l or h or d:
@@ -129,6 +133,8 @@ class Player(pygame.sprite.Sprite):
             self.rect.x += 1
             if pygame.sprite.spritecollideany(self, walls_group):
                 self.rect.x -= 1
+        self.weapon.rect.x = self.rect.x + 15 - self.weapon.butt
+        self.weapon.rect.y = self.rect.y + 20
 
 
 class Camera:
@@ -157,11 +163,11 @@ class Panel:
 
         self.image.blit(load_image('heart.png', -1), (5, 5))
         pygame.draw.rect(self.image, COLOR['black'], (34, 4, 122, 22))
-        pygame.draw.rect(self.image, COLOR['red'], (35, 5, math.ceil(120 * player.health / HEALTH), 20))
+        pygame.draw.rect(self.image, (COLOR['red']), (35, 5, math.ceil(120 * player.health / HEALTH), 20))
 
         self.image.blit(load_image('shild.png', -1), (5, 30))
         pygame.draw.rect(self.image, COLOR['black'], (34, 29, 122, 22))
-        pygame.draw.rect(self.image, COLOR['yellow'], (35, 30, math.ceil(120 * player.protection / PROTECTION), 20))
+        pygame.draw.rect(self.image, COLOR['orange'], (35, 30, math.ceil(120 * player.protection / PROTECTION), 20))
 
         self.image.blit(load_image('bullet.png', -1), (5, 55))
         pygame.draw.rect(self.image, COLOR['black'], (34, 54, 122, 22))
@@ -172,6 +178,16 @@ class Panel:
         self.image.blit(text_bullets, (95 - text_bullets.get_width() // 2, 59))
 
 
+class Weapon(pygame.sprite.Sprite):
+    def __init__(self, damage, rate_of_fire, filename, pos_x, pos_y, butt):
+        super().__init__(weapons_group, all_sprites)
+        self.damage = damage
+        self.rate_of_fire = rate_of_fire
+        self.image = load_image(filename, -1)
+        self.rect = self.image.get_rect().move(pos_x * tile_width, pos_y * tile_height)
+        self.butt = butt
+
+
 FPS = 200
 pygame.init()
 WIDTH = 500
@@ -180,10 +196,12 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 screen.fill(pygame.Color('black'))
 COLOR = {'black': pygame.Color('black'), 'white': pygame.Color('white'), 'red': pygame.Color('red'),
          'green': pygame.Color('green'), 'blue': pygame.Color('blue'), 'yellow': pygame.Color('yellow'),
-         'cyan': pygame.Color('cyan'), 'magenta': pygame.Color('magenta'), 'azure': (150, 255, 255)}
+         'cyan': pygame.Color('cyan'), 'magenta': pygame.Color('magenta'), 'azure': (150, 255, 255),
+         'orange': pygame.Color('orange')}
 
-tile_images = {'wall': load_image('wall2.png', -1), 'empty': load_image('flour2.png'), 'd_wall': load_image('d_wall2.png'),
-               'hwall': load_image('wall.png'), "helth": load_image('helth.png'), "wall1": load_image("d_wall2.png")}
+tile_images = {'wall': load_image('wall.png', -1), 'empty': load_image('flour.png'),
+               'd_wall': load_image('d_wall.png'), 'health': load_image('health.png'),
+               'wall1': load_image('d_wall.png')}
 player_image = load_image('hero.png', -1)
 player_animation = (load_image('heromove1.png', -1), load_image('heromove2.png', -1))
 player_image1 = pygame.transform.flip(load_image('hero.png', -1), True, False)
@@ -193,6 +211,8 @@ tile_width = 32
 tile_height = 32
 
 player = None
+weapons_group = pygame.sprite.Group()
+hero_weapon_group = pygame.sprite.GroupSingle()
 hwalls_group = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
@@ -204,6 +224,9 @@ start_screen()
 HEALTH = 5
 PROTECTION = 5
 BULLETS = 200
+colt = Weapon(2, 1, 'colt.png', 1, 1, 0)
+hero_weapon_group.add(colt)
+colt.remove(weapons_group)
 player, level_x, level_y = generate_level(load_level('map.txt'))
 running = True
 camera = Camera()
@@ -243,7 +266,9 @@ while running:
         camera.apply(sprite)
     tiles_group.draw(screen)
     walls_group.draw(screen)
+    weapons_group.draw(screen)
     player_group.draw(screen)
+    hero_weapon_group.draw(screen)
     hwalls_group.draw(screen)
     screen.blit(Panel().image, (0, HEIGHT - 80))
     clock.tick(FPS)
