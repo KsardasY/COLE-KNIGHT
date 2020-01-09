@@ -1,7 +1,7 @@
 import pygame
 import os
 import sys
-import math
+from math import ceil, atan, degrees, sin, radians
 
 
 def load_image(name, colorkey=None):
@@ -120,6 +120,36 @@ class Player(pygame.sprite.Sprite):
                 self.image = player_image1
 
     def update(self):
+        if pygame.mouse.get_pos()[0] > self.rect.x + 18:
+            self.weapon.rect.topleft = (self.rect.x + WEAPON_X - self.weapon.butt, self.rect.y + WEAPON_Y)
+            x_distance = pygame.mouse.get_pos()[0] - self.rect.x - WEAPON_X + self.weapon.butt
+            if x_distance == 0:
+                if pygame.mouse.get_pos()[1] > self.rect.y:
+                    angle = 90
+                else:
+                    angle = -90
+            else:
+                angle = degrees(atan((self.rect.y + WEAPON_Y - pygame.mouse.get_pos()[1]) / x_distance))
+            self.weapon.image = pygame.transform.rotate(self.weapon.main_image, angle)
+            if pygame.mouse.get_pos()[1] < self.weapon.rect.y:
+                self.weapon.rect = self.weapon.rect.move(0, (self.weapon.rect.h - self.weapon.rect.w) * sin(
+                    radians(angle)))
+        else:
+            self.weapon.rect.topright = (self.rect.x - WEAPON_X + self.weapon.butt + self.rect.w,
+                                          self.rect.y + WEAPON_Y)
+            x_distance = pygame.mouse.get_pos()[0] - self.rect.x - self.rect.w + WEAPON_X -\
+                         self.weapon.butt
+            if x_distance == 0:
+                if pygame.mouse.get_pos()[1] > self.rect.y:
+                    angle = -90
+                else:
+                    angle = 90
+            else:
+                angle = degrees(atan((self.rect.y + WEAPON_Y - pygame.mouse.get_pos()[1]) / x_distance))
+            self.weapon.image = pygame.transform.rotate(self.weapon.main_image1, angle)
+            if pygame.mouse.get_pos()[1] < self.weapon.rect.y:
+                self.weapon.rect = self.weapon.rect.move(0, (self.weapon.rect.w - self.weapon.rect.h) * sin(
+                    radians(angle)))
         if l:
             self.rect.x -= 1
             if pygame.sprite.spritecollideany(self, walls_group):
@@ -136,8 +166,6 @@ class Player(pygame.sprite.Sprite):
             self.rect.x += 1
             if pygame.sprite.spritecollideany(self, walls_group):
                 self.rect.x -= 1
-        self.weapon.rect.x = self.rect.x + 15 - self.weapon.butt
-        self.weapon.rect.y = self.rect.y + 20
 
 
 class Camera:
@@ -166,15 +194,15 @@ class Panel:
 
         self.image.blit(load_image('heart.png', -1), (5, 5))
         pygame.draw.rect(self.image, COLOR['black'], (34, 4, 122, 22))
-        pygame.draw.rect(self.image, (COLOR['red']), (35, 5, math.ceil(120 * player.health / HEALTH), 20))
+        pygame.draw.rect(self.image, (COLOR['red']), (35, 5, ceil(120 * player.health / HEALTH), 20))
 
         self.image.blit(load_image('shild.png', -1), (5, 30))
         pygame.draw.rect(self.image, COLOR['black'], (34, 29, 122, 22))
-        pygame.draw.rect(self.image, COLOR['orange'], (35, 30, math.ceil(120 * player.protection / PROTECTION), 20))
+        pygame.draw.rect(self.image, COLOR['orange'], (35, 30, ceil(120 * player.protection / PROTECTION), 20))
 
         self.image.blit(load_image('bullet.png', -1), (5, 55))
         pygame.draw.rect(self.image, COLOR['black'], (34, 54, 122, 22))
-        pygame.draw.rect(self.image, COLOR['magenta'], (35, 55, math.ceil(120 * player.bullets / BULLETS), 20))
+        pygame.draw.rect(self.image, COLOR['magenta'], (35, 55, ceil(120 * player.bullets / BULLETS), 20))
 
         self.image.blit(text_health, (95 - text_health.get_width() // 2, 9))
         self.image.blit(text_protection, (95 - text_protection.get_width() // 2, 34))
@@ -187,6 +215,8 @@ class Weapon(pygame.sprite.Sprite):
         self.damage = damage
         self.rate_of_fire = rate_of_fire
         self.image = load_image(filename, -1)
+        self.main_image = self.image
+        self.main_image1 = pygame.transform.flip(self.image, True, False)
         self.rect = self.image.get_rect().move(pos_x * tile_width, pos_y * tile_height)
         self.butt = butt
 
@@ -202,6 +232,7 @@ class Weapon(pygame.sprite.Sprite):
                     player.number_of_weapon = 1
                 else:
                     weapons_group.add(player.weapon)
+                    player.weapon.image = player.weapon.main_image
                     player.weapon.remove(hero_weapon_group)
                     del player.weapons[player.number_of_weapon]
                     player.weapon = weap
@@ -252,6 +283,8 @@ FPS = 200
 pygame.init()
 WIDTH = 500
 HEIGHT = 500
+WEAPON_X = 18
+WEAPON_Y = 20
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 screen.fill(pygame.Color('black'))
 COLOR = {'black': pygame.Color('black'), 'white': pygame.Color('white'), 'red': pygame.Color('red'),
@@ -333,7 +366,6 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 4 or event.button == 5:
                 Weapon.change()
-
     player.animation()
     player.update()
     camera.update(player)
