@@ -16,18 +16,29 @@ def load_image(name, colorkey=None):
     return image
 
 
+def playing_song(name):
+    global proof_for_song
+    pygame.mixer.music.load(os.path.join('data', name))
+    pygame.mixer.music.play(-1)
+    proof_for_song = True
+
+
 def terminate():
     pygame.quit()
     sys.exit()
 
 
 def start_screen():
+    fon = pygame.transform.scale(load_image('fon.png'), (WIDTH, HEIGHT))
+    screen.blit(fon, (0, 0))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                return
+                if (pygame.mouse.get_pos()[0] >= 105 and pygame.mouse.get_pos()[0] <= 393
+                        and pygame.mouse.get_pos()[1] >= 113 and pygame.mouse.get_pos()[1] <= 397):
+                    return
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -300,10 +311,13 @@ player_animation = (load_image('heromove1.png', -1), load_image('heromove2.png',
 player_image1 = pygame.transform.flip(load_image('hero.png', -1), True, False)
 player_animation1 = (pygame.transform.flip(load_image('heromove1.png', -1), True, False),
                      pygame.transform.flip(load_image('heromove2.png', -1), True, False))
+image_volume_on = load_image('volume_on.png')
+image_volume_off = load_image('volume_off.png')
 tile_width = 32
 tile_height = 32
 
 player = None
+volume_group = pygame.sprite.Group()
 potion_group = pygame.sprite.Group()
 weapons_group = pygame.sprite.Group()
 hero_weapon_group = pygame.sprite.GroupSingle()
@@ -335,7 +349,8 @@ h = False
 d = False
 l = False
 r = False
-
+proof_for_song = False
+playing_song("song1.mp3")
 while running:
     event = None
     screen.fill((0, 0, 0))
@@ -366,6 +381,13 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 4 or event.button == 5:
                 Weapon.change()
+            if pygame.mouse.get_pos()[0] < 50 and pygame.mouse.get_pos()[1] < 50:
+                if proof_for_song:
+                    pygame.mixer.music.pause()
+                    proof_for_song = False
+                else:
+                    pygame.mixer.music.unpause()
+                    proof_for_song = True
     player.animation()
     player.update()
     camera.update(player)
@@ -380,4 +402,8 @@ while running:
     hwalls_group.draw(screen)
     screen.blit(Panel().image, (0, HEIGHT - 80))
     clock.tick(FPS)
+    if proof_for_song:
+        screen.blit(image_volume_on, (0, 0))
+    else:
+        screen.blit(image_volume_off, (0, 0))
     pygame.display.flip()
