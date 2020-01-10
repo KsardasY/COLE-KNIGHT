@@ -36,8 +36,7 @@ def start_screen():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                if (pygame.mouse.get_pos()[0] >= 105 and pygame.mouse.get_pos()[0] <= 393
-                        and pygame.mouse.get_pos()[1] >= 113 and pygame.mouse.get_pos()[1] <= 397):
+                if 105 <= pygame.mouse.get_pos()[0] <= 393 and 113 <= pygame.mouse.get_pos()[1] <= 397:
                     return
         pygame.display.flip()
         clock.tick(FPS)
@@ -61,7 +60,7 @@ def generate_level(level):
                 Tile('wall1', x, y)
                 Tile('d_wall', x, y)
             elif level[y][x] == "^":
-                Weapon(2, 1, 'colt2.png', x, y, 0)
+                Weapon(2, 1, 'colt2.png', x, y, 0, 'bullet')
                 Tile('empty', x, y)
             elif level[y][x] == '@':
                 Tile('empty', x, y)
@@ -133,14 +132,16 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         if pygame.mouse.get_pos()[0] > self.rect.x + 18:
             self.weapon.rect.topleft = (self.rect.x + WEAPON_X - self.weapon.butt, self.rect.y + WEAPON_Y)
-            x_distance = pygame.mouse.get_pos()[0] - self.rect.x - WEAPON_X + self.weapon.butt
+            x_distance = pygame.mouse.get_pos()[0] - self.weapon.rect.x
             if x_distance == 0:
                 if pygame.mouse.get_pos()[1] > self.rect.y:
                     angle = 90
                 else:
                     angle = -90
             else:
-                angle = degrees(atan((self.rect.y + WEAPON_Y - pygame.mouse.get_pos()[1]) / x_distance))
+                angle = degrees(atan((self.weapon.rect.y - pygame.mouse.get_pos()[1]) / x_distance))
+                angle = degrees(atan((self.weapon.rect.y - (self.weapon.rect.h - self.weapon.rect.w) * sin(
+                    radians(angle)) - pygame.mouse.get_pos()[1]) / x_distance))
             self.weapon.image = pygame.transform.rotate(self.weapon.main_image, angle)
             if pygame.mouse.get_pos()[1] < self.weapon.rect.y:
                 self.weapon.rect = self.weapon.rect.move(0, (self.weapon.rect.h - self.weapon.rect.w) * sin(
@@ -148,19 +149,25 @@ class Player(pygame.sprite.Sprite):
         else:
             self.weapon.rect.topright = (self.rect.x - WEAPON_X + self.weapon.butt + self.rect.w,
                                           self.rect.y + WEAPON_Y)
-            x_distance = pygame.mouse.get_pos()[0] - self.rect.x - self.rect.w + WEAPON_X -\
-                         self.weapon.butt
+            x_distance = pygame.mouse.get_pos()[0] - self.weapon.rect.topright[0]
             if x_distance == 0:
                 if pygame.mouse.get_pos()[1] > self.rect.y:
                     angle = -90
                 else:
                     angle = 90
             else:
-                angle = degrees(atan((self.rect.y + WEAPON_Y - pygame.mouse.get_pos()[1]) / x_distance))
+                angle = degrees(atan((self.weapon.rect.y - pygame.mouse.get_pos()[1]) / x_distance))
+                angle = degrees(atan((self.weapon.rect.y - (self.weapon.rect.h - self.weapon.rect.w) * sin(
+                    radians(angle)) - pygame.mouse.get_pos()[1]) / x_distance))
             self.weapon.image = pygame.transform.rotate(self.weapon.main_image1, angle)
             if pygame.mouse.get_pos()[1] < self.weapon.rect.y:
                 self.weapon.rect = self.weapon.rect.move(0, (self.weapon.rect.w - self.weapon.rect.h) * sin(
                     radians(angle)))
+                self.weapon.rect = self.weapon.rect.move(
+                    -(self.weapon.rect.w - self.weapon.rect.h) * sin(radians(angle)), 0)
+            else:
+                self.weapon.rect = self.weapon.rect.move(
+                    (self.weapon.rect.w - self.weapon.rect.h) * sin(radians(angle)), 0)
         if l:
             self.rect.x -= 1
             if pygame.sprite.spritecollideany(self, walls_group):
@@ -177,6 +184,9 @@ class Player(pygame.sprite.Sprite):
             self.rect.x += 1
             if pygame.sprite.spritecollideany(self, walls_group):
                 self.rect.x -= 1
+
+    #def shot(self):
+
 
 
 class Camera:
@@ -220,8 +230,16 @@ class Panel:
         self.image.blit(text_bullets, (95 - text_bullets.get_width() // 2, 59))
 
 
+class Projectile(pygame.sprite.Sprite):
+    def __init__(self, type_of_projectile, initial_coords, final_coords):
+        super().__init__(hero_projectile, all_sprites)
+        self.initial_coords = initial_coords
+        self.final_coords = final_coords
+        #if type_of_projectile == 'laser':
+
+
 class Weapon(pygame.sprite.Sprite):
-    def __init__(self, damage, rate_of_fire, filename, pos_x, pos_y, butt):
+    def __init__(self, damage, rate_of_fire, filename, pos_x, pos_y, butt, type_of_projectile):
         super().__init__(weapons_group, all_sprites)
         self.damage = damage
         self.rate_of_fire = rate_of_fire
@@ -321,6 +339,7 @@ volume_group = pygame.sprite.Group()
 potion_group = pygame.sprite.Group()
 weapons_group = pygame.sprite.Group()
 hero_weapon_group = pygame.sprite.GroupSingle()
+hero_projectile = pygame.sprite.Group()
 hwalls_group = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
@@ -338,8 +357,9 @@ HEALTH_POTION3 = 4
 BULLET_POTION1 = 30
 BULLET_POTION2 = 60
 BULLET_POTION3 = 120
-colt = Weapon(2, 1, 'colt.png', 1, 1, 0)
-colt3 = Weapon(2, 1, 'colt3.png', 1, 1, 0)
+colt = Weapon(2, 1, 'colt.png', 1, 1, 0, 'bullet')
+colt3 = Weapon(2, 1, 'colt3.png', 1, 1, 0, 'bullet')
+g_blaster = Weapon(3, 2, 'g_blaster.png', 4, 5, 4, 'laser')
 hero_weapon_group.add(colt)
 colt.remove(weapons_group)
 player, level_x, level_y = generate_level(load_level('map.txt'))
