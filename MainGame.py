@@ -20,6 +20,7 @@ def playing_song(name):
     global proof_for_song
     pygame.mixer.music.load(os.path.join('data', name))
     pygame.mixer.music.play(-1)
+    proof_for_song = True
 
 
 def terminate():
@@ -46,7 +47,7 @@ def load_level(filename):
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
     max_width = max(map(len, level_map))
-    return level_map
+    return list(map(lambda x: x.ljust(max_width, '#'), level_map))
 
 
 def generate_level(level):
@@ -444,6 +445,7 @@ tile_width = 32
 tile_height = 32
 
 player = None
+volume_group = pygame.sprite.Group()
 potion_group = pygame.sprite.Group()
 weapons_group = pygame.sprite.Group()
 hero_weapon_group = pygame.sprite.GroupSingle()
@@ -477,7 +479,7 @@ h = False
 d = False
 l = False
 r = False
-proof_for_song = True
+proof_for_song = False
 playing_song("song1.mp3")
 while running:
     event = None
