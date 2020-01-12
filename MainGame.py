@@ -2,6 +2,7 @@ import pygame
 import os
 import sys
 from math import ceil, atan, degrees, sin, radians
+from pygame import mixer
 
 
 def load_image(name, colorkey=None):
@@ -17,10 +18,16 @@ def load_image(name, colorkey=None):
 
 
 def playing_song(name):
-    global proof_for_song
-    pygame.mixer.music.load(os.path.join('data', name))
-    pygame.mixer.music.play(-1)
-    proof_for_song = True
+    mixer.music.load(os.path.join('data', name))
+    mixer.music.play()
+
+
+def playing_sound(name):
+    mixer.pre_init(44100, -16, 1, 512)
+    mixer.init()
+    if proof_for_sound:
+        audio = mixer.Sound(os.path.join('data', name))
+        audio.play()
 
 
 def terminate():
@@ -62,7 +69,7 @@ def generate_level(level):
                 if y != len(level) - 1 and level[y + 1][x] == '#':
                     Tile('wall1', x, y + 0.5)
             elif level[y][x] == "^":
-                Weapon(2, 1, 'colt2.png', x, y, 0, 'bullet')
+                Weapon(2, 0, 1, 'colt2.png', x, y, 0, 'bullet')
                 Tile('empty', x, y)
             elif level[y][x] == '@':
                 Tile('empty', x, y)
@@ -95,6 +102,8 @@ class Tile(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
+        self.fire = True
+        self.brake = 0
         self.c = 0
         self.health = HEALTH
         self.protection = PROTECTION
@@ -187,9 +196,18 @@ class Player(pygame.sprite.Sprite):
             self.rect.x += 1
             if pygame.sprite.spritecollideany(self, walls_group):
                 self.rect.x -= 1
+        if not self.fire:
+            self.brake += 1
+            if self.brake >= FPS // self.weapon.rate_of_fire:
+                self.fire = True
 
     def shot(self):
-        Projectile(self.weapon.type_of_projectile, self.weapon.rect.center, pygame.mouse.get_pos(), self.weapon.color)
+        if self.bullets >= self.weapon.cost and self.fire:
+            player.bullets -= player.weapon.cost
+            self.brake = 0
+            Projectile(self.weapon.type_of_projectile, self.weapon.rect.center, pygame.mouse.get_pos(),
+                       self.weapon.color)
+            self.fire = False
 
 
 class Camera:
@@ -224,7 +242,7 @@ class Panel:
         pygame.draw.rect(self.image, COLOR['black'], (34, 29, 122, 22))
         pygame.draw.rect(self.image, COLOR['orange'], (35, 30, ceil(120 * player.protection / PROTECTION), 20))
 
-        self.image.blit(load_image('bullet.png', -1), (5, 55))
+        self.image.blit(load_image('bullets.png', -1), (5, 55))
         pygame.draw.rect(self.image, COLOR['black'], (34, 54, 122, 22))
         pygame.draw.rect(self.image, COLOR['magenta'], (35, 55, ceil(120 * player.bullets / BULLETS), 20))
 
@@ -234,8 +252,8 @@ class Panel:
 
 
 class Projectile(pygame.sprite.Sprite):
-    def __init__(self, type_of_projectile, initial_coords, final_coords, color=None):
-        super().__init__(hero_projectile, all_sprites)
+    def __init__(self, type_of_projectile, initial_coords, final_coords, color):
+        super().__init__(all_sprites, hero_projectile)
         self.type_of_projectile = type_of_projectile
         self.initial_coords = initial_coords
         self.final_coords = final_coords
@@ -250,7 +268,6 @@ class Projectile(pygame.sprite.Sprite):
                 self.initial_height = 1000
                 self.initial_width = max(3, 1000 * abs(self.initial_coords[0] - self.final_coords[0]) /
                                          abs(self.initial_coords[1] - self.final_coords[1]))
-            print(self.initial_width, self.initial_height)
             self.image = pygame.Surface((self.initial_width, self.initial_height))
             self.image.set_colorkey(self.image.get_at((0, 0)))
             if self.initial_coords[0] >= self.final_coords[0] and self.initial_coords[1] >= self.final_coords[1]:
@@ -262,18 +279,14 @@ class Projectile(pygame.sprite.Sprite):
                 for sprite in walls_group:
                     if pygame.sprite.collide_mask(self, sprite):
                         self.coords.append(pygame.sprite.collide_mask(self, sprite))
-                print(self.coords)
                 self.nearest_coord = max(self.coords)[0], max(self.coords, key=lambda x: x[1])[1]
-                print(self.coords, pygame.mouse.get_pos(), final_coords)
                 self.width = max(3, self.initial_width - self.nearest_coord[0])
                 self.height = max(3, self.initial_height - self.nearest_coord[1])
-                print(self.width, self.height)
                 self.image = pygame.Surface((self.width, self.height))
                 self.image.set_colorkey(self.image.get_at((0, 0)))
                 pygame.draw.line(self.image, self.color, (0, 0), (self.width - 1, self.height - 1), 3)
                 self.rect = self.image.get_rect()
                 self.rect.bottomright = self.initial_coords
-                print(self.nearest_coord, initial_coords)
             elif self.initial_coords[0] <= self.final_coords[0] and self.initial_coords[1] <= self.final_coords[1]:
                 pygame.draw.line(self.image, self.color, (0, 0), (self.initial_width - 1, self.initial_height - 1), 3)
                 self.mask = pygame.mask.from_surface(self.image)
@@ -283,18 +296,14 @@ class Projectile(pygame.sprite.Sprite):
                 for sprite in walls_group:
                     if pygame.sprite.collide_mask(self, sprite):
                         self.coords.append(pygame.sprite.collide_mask(self, sprite))
-                print(self.coords)
                 self.nearest_coord = min(self.coords)[0], min(self.coords, key=lambda x: x[1])[1]
-                print(self.coords, pygame.mouse.get_pos(), final_coords)
                 self.width = max(3, self.nearest_coord[0])
                 self.height = max(3, self.nearest_coord[1])
-                print(self.width, self.height)
                 self.image = pygame.Surface((self.width, self.height))
                 self.image.set_colorkey(self.image.get_at((0, 0)))
                 pygame.draw.line(self.image, self.color, (0, 0), (self.width - 1, self.height - 1), 3)
                 self.rect = self.image.get_rect()
                 self.rect.topleft = self.initial_coords
-                print(self.nearest_coord, initial_coords)
             elif self.initial_coords[0] >= self.final_coords[0] and self.initial_coords[1] <= self.final_coords[1]:
                 pygame.draw.line(self.image, self.color, (0, self.initial_height - 1), (self.initial_width - 1, 0), 3)
                 self.mask = pygame.mask.from_surface(self.image)
@@ -304,18 +313,14 @@ class Projectile(pygame.sprite.Sprite):
                 for sprite in walls_group:
                     if pygame.sprite.collide_mask(self, sprite):
                         self.coords.append(pygame.sprite.collide_mask(self, sprite))
-                print(self.coords)
                 self.nearest_coord = max(self.coords)[0], min(self.coords, key=lambda x: x[1])[1]
-                print(self.coords, pygame.mouse.get_pos(), final_coords)
                 self.width = max(3, self.initial_width - self.nearest_coord[0])
                 self.height = max(3, self.nearest_coord[1])
-                print(self.width, self.height)
                 self.image = pygame.Surface((self.width, self.height))
                 self.image.set_colorkey(self.image.get_at((0, 0)))
                 pygame.draw.line(self.image, self.color, (0, self.height - 1), (self.width - 1, 0), 3)
                 self.rect = self.image.get_rect()
                 self.rect.topright = self.initial_coords
-                print(self.nearest_coord, initial_coords)
             else:
                 pygame.draw.line(self.image, self.color, (0, self.initial_height - 1), (self.initial_width - 1, 0), 3)
                 self.mask = pygame.mask.from_surface(self.image)
@@ -325,29 +330,57 @@ class Projectile(pygame.sprite.Sprite):
                 for sprite in walls_group:
                     if pygame.sprite.collide_mask(self, sprite):
                         self.coords.append(pygame.sprite.collide_mask(self, sprite))
-                print(self.coords)
                 self.nearest_coord = min(self.coords)[0], max(self.coords, key=lambda x: x[1])[1]
-                print(self.coords, pygame.mouse.get_pos(), final_coords)
                 self.width = max(3, self.nearest_coord[0])
                 self.height = max(3, self.initial_height - self.nearest_coord[1])
-                print(self.width, self.height)
                 self.image = pygame.Surface((self.width, self.height))
                 self.image.set_colorkey(self.image.get_at((0, 0)))
                 pygame.draw.line(self.image, self.color, (0, self.height - 1), (self.width - 1, 0), 3)
                 self.rect = self.image.get_rect()
                 self.rect.bottomleft = self.initial_coords
-                print(self.nearest_coord, initial_coords)
+        else:
+            self.image = load_image('bullet.png')
+            self.rect = self.image.get_rect()
+            self.rect.center = self.initial_coords
+            self.x = 0
+            self.y = 0
+            self.mask = pygame.mask.from_surface(self.image)
+            self.coefficient_x = abs(self.initial_coords[0] - self.final_coords[0])
+            self.coefficient_y = abs(self.initial_coords[1] - self.final_coords[1])
+            if self.rect.center[0] >= self.final_coords[0] and self.rect.center[1] >= self.final_coords[1]:
+                self.unit_vector = 3 / (self.coefficient_x + self.coefficient_y)
+                self.vector = (- self.unit_vector * self.coefficient_x, - self.unit_vector * self.coefficient_y)
+            elif self.rect.center[0] <= self.final_coords[0] and self.rect.center[1] <= self.final_coords[1]:
+                self.unit_vector = 3 / (self.coefficient_x + self.coefficient_y)
+                self.vector = (self.unit_vector * self.coefficient_x, self.unit_vector * self.coefficient_y)
+            elif self.rect.center[0] <= self.final_coords[0] and self.rect.center[1] >= self.final_coords[1]:
+                self.unit_vector = 3 / (self.coefficient_x + self.coefficient_y)
+                self.vector = (self.unit_vector * self.coefficient_x, - self.unit_vector * self.coefficient_y)
+            elif self.rect.center[0] >= self.final_coords[0] and self.rect.center[1] <= self.final_coords[1]:
+                self.unit_vector = 3 / (self.coefficient_x + self.coefficient_y)
+                self.vector = (- self.unit_vector * self.coefficient_x, self.unit_vector * self.coefficient_y)
 
     def update(self):
         if self.type_of_projectile == 'laser':
+            if self.c == 0:
+                playing_sound("lazer.ogg")
             self.c += 1
             if self.c == 10:
+                self.kill()
+        else:
+            self.rect = self.rect.move(int(self.x + self.vector[0]) - int(self.x),
+                                       int(self.y + self.vector[1]) - int(self.y))
+            self.x += self.vector[0]
+            self.y += self.vector[1]
+            if pygame.sprite.spritecollideany(self, walls_group):
+                playing_sound("for_gun_1.ogg")
                 self.kill()
 
 
 class Weapon(pygame.sprite.Sprite):
-    def __init__(self, damage, rate_of_fire, filename, pos_x, pos_y, butt, type_of_projectile, color=None):
+    def __init__(self, damage, cost, rate_of_fire, filename, pos_x, pos_y, butt, type_of_projectile, color=None):
         super().__init__(weapons_group, all_sprites)
+        self.cost = cost
         self.damage = damage
         self.rate_of_fire = rate_of_fire
         self.image = load_image(filename, -1)
@@ -356,8 +389,7 @@ class Weapon(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(pos_x * tile_width, pos_y * tile_height)
         self.butt = butt
         self.type_of_projectile = type_of_projectile
-        if self.type_of_projectile == 'laser':
-            self.color = color
+        self.color = color
 
     def update(*args):
         for weap in weapons_group:
@@ -439,8 +471,10 @@ player_animation = (load_image('heromove1.png', -1), load_image('heromove2.png',
 player_image1 = pygame.transform.flip(load_image('hero.png', -1), True, False)
 player_animation1 = (pygame.transform.flip(load_image('heromove1.png', -1), True, False),
                      pygame.transform.flip(load_image('heromove2.png', -1), True, False))
-image_volume_on = load_image('volume_on.png')
-image_volume_off = load_image('volume_off.png')
+image_sound_on = load_image('volume_on.png')
+image_sound_off = load_image('volume_off.png')
+image_song_on = load_image('song_on.png')
+image_song_off = load_image('song_off.png')
 tile_width = 32
 tile_height = 32
 
@@ -467,9 +501,10 @@ HEALTH_POTION3 = 4
 BULLET_POTION1 = 30
 BULLET_POTION2 = 60
 BULLET_POTION3 = 120
-colt = Weapon(2, 1, 'colt.png', 1, 1, 0, 'bullet')
-colt3 = Weapon(2, 1, 'colt3.png', 1, 1, 0, 'bullet')
-g_blaster = Weapon(3, 2, 'g_blaster.png', 4, 5, 4, 'laser', 'green')
+colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
+colt3 = Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet')
+g_blaster = Weapon(6, 2, 4, 'g_blaster.png', 4, 5, 4, 'laser', 'green')
+g_blaster = Weapon(6, 2, 4, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
 hero_weapon_group.add(colt)
 colt.remove(weapons_group)
 player, level_x, level_y = generate_level(load_level('map.txt'))
@@ -479,8 +514,10 @@ h = False
 d = False
 l = False
 r = False
-proof_for_song = False
-playing_song("song1.mp3")
+fire = False
+proof_for_song = True
+proof_for_sound = True
+playing_song("song1.ogg")
 while running:
     event = None
     screen.fill((0, 0, 0))
@@ -512,16 +549,29 @@ while running:
             if event.button == 4 or event.button == 5:
                 Weapon.change()
             if event.button == 1:
-                player.shot()
-            if pygame.mouse.get_pos()[0] < 50 and pygame.mouse.get_pos()[1] < 50:
-                if proof_for_song:
-                    pygame.mixer.music.pause()
-                    proof_for_song = False
+                if pygame.mouse.get_pos()[0] < 50 and pygame.mouse.get_pos()[1] < 50:
+                    if proof_for_song:
+                        pygame.mixer.music.pause()
+                        proof_for_song = False
+                    else:
+                        pygame.mixer.music.unpause()
+                        proof_for_song = True
+                if (pygame.mouse.get_pos()[0] > 50 and pygame.mouse.get_pos()[1] < 50
+                        and pygame.mouse.get_pos()[0] < 100):
+                    if proof_for_sound:
+                        proof_for_sound = False
+                    else:
+                        proof_for_sound = True
                 else:
-                    pygame.mixer.music.unpause()
-                    proof_for_song = True
+                    fire = True
+        if event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1 and not(pygame.mouse.get_pos()[0] < 50 and pygame.mouse.get_pos()[1] < 50):
+                fire = False
+    if fire:
+        player.shot()
     player.animation()
     player.update()
+
     hero_projectile.update()
     camera.update(player)
     for sprite in all_sprites:
@@ -537,7 +587,11 @@ while running:
     screen.blit(Panel().image, (0, HEIGHT - 80))
     clock.tick(FPS)
     if proof_for_song:
-        screen.blit(image_volume_on, (0, 0))
+        screen.blit(image_song_on, (0, 0))
     else:
-        screen.blit(image_volume_off, (0, 0))
+        screen.blit(image_song_off, (0, 0))
+    if proof_for_sound:
+        screen.blit(image_sound_on, (50, 0))
+    else:
+        screen.blit(image_sound_off, (50, 0))
     pygame.display.flip()
