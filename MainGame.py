@@ -35,6 +35,38 @@ def terminate():
     sys.exit()
 
 
+def info_screen():
+    fon_info = pygame.transform.scale(load_image('fon_info.png'), (WIDTH, HEIGHT))
+    screen.blit(fon_info, (0, 0))
+    intro_text = ["Когда-то давно клан ассасинов ",
+                  "жил в благополучии и мире,",
+                  "но однажды на клан напала", "армия безумного короля.",
+                  "В живых остался только глава клана.",
+                  "С тех пор он пообещал себе,",
+                  "что не успокоится, пока не отомстит",
+                  "за своих соклановцев."]
+
+    font = pygame.font.Font(None, 35)
+    text_coord = 80
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 30
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                if pygame.mouse.get_pos()[0] <= 61 and pygame.mouse.get_pos()[1] <= 31:
+                    return
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 def start_screen():
     fon = pygame.transform.scale(load_image('fon.png'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
@@ -45,6 +77,9 @@ def start_screen():
             elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
                 if 105 <= pygame.mouse.get_pos()[0] <= 393 and 113 <= pygame.mouse.get_pos()[1] <= 397:
                     return
+                elif pygame.mouse.get_pos()[0] <= 61 and pygame.mouse.get_pos()[1] <= 31:
+                    info_screen()
+                    screen.blit(fon, (0, 0))
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -52,9 +87,10 @@ def start_screen():
 def load_level(filename):
     filename = "data/" + filename
     with open(filename, 'r') as mapFile:
-        level_map = [line.strip() for line in mapFile]
+        level_map = [line for line in mapFile]
     max_width = max(map(len, level_map))
-    return list(map(lambda x: x.ljust(max_width, '#'), level_map))
+    level_map = list(map(lambda x: x.ljust(max_width, " "), level_map))
+    return level_map
 
 
 def generate_level(level):
@@ -502,9 +538,9 @@ BULLET_POTION1 = 30
 BULLET_POTION2 = 60
 BULLET_POTION3 = 120
 colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
-colt3 = Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet')
-g_blaster = Weapon(6, 2, 4, 'g_blaster.png', 4, 5, 4, 'laser', 'green')
-g_blaster = Weapon(6, 2, 4, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
+# colt3 = Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet')
+# g_blaster = Weapon(6, 2, 4, 'g_blaster.png', 4, 5, 4, 'laser', 'green')
+# g_blaster = Weapon(6, 2, 4, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
 hero_weapon_group.add(colt)
 colt.remove(weapons_group)
 player, level_x, level_y = generate_level(load_level('map.txt'))
