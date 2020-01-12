@@ -19,7 +19,7 @@ def load_image(name, colorkey=None):
 
 def playing_song(name):
     mixer.music.load(os.path.join('data', name))
-    mixer.music.play()
+    mixer.music.play(-1)
 
 
 def playing_sound(name):
@@ -68,7 +68,7 @@ def info_screen():
 
 
 def pause():
-    global l, h, r, d
+    global proof_for_song, proof_for_sound
     tiles_group.draw(screen)
     potion_group.draw(screen)
     walls_group.draw(screen)
@@ -124,6 +124,28 @@ def pause():
                 elif (event.button == 1 and 260 <= pygame.mouse.get_pos()[0] <= 300 and
                         210 <= pygame.mouse.get_pos()[1] <= 250):
                         pass
+                if event.button == 1:
+                    if 160 < pygame.mouse.get_pos()[0] < 200 and HEIGHT - 40 <= pygame.mouse.get_pos()[1] <= HEIGHT:
+                        if proof_for_song:
+                            pygame.mixer.music.pause()
+                            proof_for_song = False
+                        else:
+                            pygame.mixer.music.unpause()
+                            proof_for_song = True
+                    elif 160 < pygame.mouse.get_pos()[0] < 200 and HEIGHT - 80 <= pygame.mouse.get_pos()[
+                        1] < HEIGHT - 40:
+                        if proof_for_sound:
+                            proof_for_sound = False
+                        else:
+                            proof_for_sound = True
+        if proof_for_song:
+            screen.blit(image_song_on, (160, HEIGHT - 40))
+        else:
+            screen.blit(image_song_off, (160, HEIGHT - 40))
+        if proof_for_sound:
+            screen.blit(image_sound_on, (160, HEIGHT - 80))
+        else:
+            screen.blit(image_sound_off, (160, HEIGHT - 80))
         pygame.display.flip()
         clock.tick(FPS)
 
