@@ -232,7 +232,7 @@ class Panel:
         text_bullets = font.render(str(player.bullets) + '/' + str(BULLETS), 1, COLOR['white'])
         self.image = pygame.Surface((160, 80))
         self.image.fill(COLOR['azure'])
-        pygame.draw.rect(self.image, COLOR['blue'], (0, 0, 200, 80), 1)
+        pygame.draw.rect(self.image, COLOR['blue'], (0, 0, 160, 80), 1)
 
         self.image.blit(load_image('heart.png', -1), (5, 5))
         pygame.draw.rect(self.image, COLOR['black'], (34, 4, 122, 22))
@@ -549,20 +549,19 @@ while running:
             if event.button == 4 or event.button == 5:
                 Weapon.change()
             if event.button == 1:
-                if pygame.mouse.get_pos()[0] < 50 and pygame.mouse.get_pos()[1] < 50:
+                if 160 < pygame.mouse.get_pos()[0] < 200 and HEIGHT - 40 <= pygame.mouse.get_pos()[1] <= HEIGHT:
                     if proof_for_song:
                         pygame.mixer.music.pause()
                         proof_for_song = False
                     else:
                         pygame.mixer.music.unpause()
                         proof_for_song = True
-                if (pygame.mouse.get_pos()[0] > 50 and pygame.mouse.get_pos()[1] < 50
-                        and pygame.mouse.get_pos()[0] < 100):
+                elif 160 < pygame.mouse.get_pos()[0] < 200 and HEIGHT - 80 <= pygame.mouse.get_pos()[1] < HEIGHT - 40:
                     if proof_for_sound:
                         proof_for_sound = False
                     else:
                         proof_for_sound = True
-                else:
+                elif pygame.mouse.get_pos()[0] >= 200 or HEIGHT - 80 > pygame.mouse.get_pos()[1]:
                     fire = True
         if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1 and not(pygame.mouse.get_pos()[0] < 50 and pygame.mouse.get_pos()[1] < 50):
@@ -587,11 +586,11 @@ while running:
     screen.blit(Panel().image, (0, HEIGHT - 80))
     clock.tick(FPS)
     if proof_for_song:
-        screen.blit(image_song_on, (0, 0))
+        screen.blit(image_song_on, (160, HEIGHT - 40))
     else:
-        screen.blit(image_song_off, (0, 0))
+        screen.blit(image_song_off, (160, HEIGHT - 40))
     if proof_for_sound:
-        screen.blit(image_sound_on, (50, 0))
+        screen.blit(image_sound_on, (160, HEIGHT - 80))
     else:
-        screen.blit(image_sound_off, (50, 0))
+        screen.blit(image_sound_off, (160, HEIGHT - 80))
     pygame.display.flip()
