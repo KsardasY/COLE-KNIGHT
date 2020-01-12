@@ -61,7 +61,7 @@ def info_screen():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                if pygame.mouse.get_pos()[0] <= 61 and pygame.mouse.get_pos()[1] <= 31:
+                if event.button == 1 and pygame.mouse.get_pos()[0] <= 61 and pygame.mouse.get_pos()[1] <= 31:
                     return
         pygame.display.flip()
         clock.tick(FPS)
@@ -74,10 +74,11 @@ def start_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                if 105 <= pygame.mouse.get_pos()[0] <= 393 and 113 <= pygame.mouse.get_pos()[1] <= 397:
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if (event.button == 1 and 105 <= pygame.mouse.get_pos()[0] <= 393 and
+                        113 <= pygame.mouse.get_pos()[1] <= 397):
                     return
-                elif pygame.mouse.get_pos()[0] <= 61 and pygame.mouse.get_pos()[1] <= 31:
+                elif event.button == 1 and pygame.mouse.get_pos()[0] <= 61 and pygame.mouse.get_pos()[1] <= 31:
                     info_screen()
                     screen.blit(fon, (0, 0))
         pygame.display.flip()
