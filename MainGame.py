@@ -68,7 +68,7 @@ def info_screen():
 
 
 def pause():
-    global proof_for_song, proof_for_sound
+    global proof_for_song, proof_for_sound, l, h, r, d
     tiles_group.draw(screen)
     potion_group.draw(screen)
     walls_group.draw(screen)
