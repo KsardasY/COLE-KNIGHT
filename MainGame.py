@@ -67,6 +67,67 @@ def info_screen():
         clock.tick(FPS)
 
 
+def pause():
+    global l, h, r, d
+    tiles_group.draw(screen)
+    potion_group.draw(screen)
+    walls_group.draw(screen)
+    weapons_group.draw(screen)
+    player_group.draw(screen)
+    hero_projectile.draw(screen)
+    hero_weapon_group.draw(screen)
+    hwalls_group.draw(screen)
+    screen.blit(Panel().image, (0, HEIGHT - 80))
+    clock.tick(FPS)
+    if proof_for_song:
+        screen.blit(image_song_on, (160, HEIGHT - 40))
+    else:
+        screen.blit(image_song_off, (160, HEIGHT - 40))
+    if proof_for_sound:
+        screen.blit(image_sound_on, (160, HEIGHT - 80))
+    else:
+        screen.blit(image_sound_off, (160, HEIGHT - 80))
+    menu = pygame.transform.scale(load_image('menu.png'), (100, 50))
+    exit = pygame.transform.scale(load_image('exit.png'), (40, 40))
+    retry = pygame.transform.scale(load_image('retry.png'), (40, 40))
+    screen.blit(menu, (205, 205))
+    screen.blit(exit, (210, 210))
+    screen.blit(retry, (260, 210))
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return
+                elif event.key == pygame.K_a:
+                    l = True
+                elif event.key == pygame.K_w:
+                    h = True
+                elif event.key == pygame.K_s:
+                    d = True
+                elif event.key == pygame.K_d:
+                    r = True
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_a:
+                    l = False
+                elif event.key == pygame.K_w:
+                    h = False
+                elif event.key == pygame.K_s:
+                    d = False
+                elif event.key == pygame.K_d:
+                    r = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if (event.button == 1 and 210 <= pygame.mouse.get_pos()[0] <= 250 and
+                        210 <= pygame.mouse.get_pos()[1] <= 250):
+                    terminate()
+                elif (event.button == 1 and 260 <= pygame.mouse.get_pos()[0] <= 300 and
+                        210 <= pygame.mouse.get_pos()[1] <= 250):
+                        pass
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 def start_screen():
     fon = pygame.transform.scale(load_image('fon.png'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
@@ -562,7 +623,9 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_a:
+            if event.key == pygame.K_ESCAPE:
+                pause()
+            elif event.key == pygame.K_a:
                 l = True
             elif event.key == pygame.K_w:
                 h = True
@@ -630,4 +693,5 @@ while running:
         screen.blit(image_sound_on, (160, HEIGHT - 80))
     else:
         screen.blit(image_sound_off, (160, HEIGHT - 80))
+    rte = pygame.display.flip()
     pygame.display.flip()
