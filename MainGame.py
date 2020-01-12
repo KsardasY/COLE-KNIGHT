@@ -60,7 +60,7 @@ def info_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and pygame.mouse.get_pos()[0] <= 61 and pygame.mouse.get_pos()[1] <= 31:
                     return
         pygame.display.flip()
@@ -627,7 +627,7 @@ colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
 # g_blaster = Weapon(6, 2, 4, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
 hero_weapon_group.add(colt)
 colt.remove(weapons_group)
-player, level_x, level_y = generate_level(load_level('map.txt'))
+player, level_x, level_y = generate_level(load_level('map2.txt'))
 running = True
 camera = Camera()
 h = False
