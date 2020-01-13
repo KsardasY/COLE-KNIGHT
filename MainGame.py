@@ -36,6 +36,120 @@ def terminate():
     sys.exit()
 
 
+def info_screen():
+    fon_info = pygame.transform.scale(load_image('fon_info.png'), (WIDTH, HEIGHT))
+    screen.blit(fon_info, (0, 0))
+    intro_text = ["Когда-то давно клан ассасинов ",
+                  "жил в благополучии и мире,",
+                  "но однажды на клан напала", "армия безумного короля.",
+                  "В живых остался только глава клана.",
+                  "С тех пор он пообещал себе,",
+                  "что не успокоится, пока не отомстит",
+                  "за своих соклановцев."]
+    font = pygame.font.Font(None, 35)
+    text_coord = 80
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 30
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1 and pygame.mouse.get_pos()[0] <= 61 and pygame.mouse.get_pos()[1] <= 31:
+                    return
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
+def pause():
+    global proof_for_song, proof_for_sound, l, h, r, d
+    tiles_group.draw(screen)
+    potion_group.draw(screen)
+    walls_group.draw(screen)
+    weapons_group.draw(screen)
+    player_group.draw(screen)
+    hero_projectile.draw(screen)
+    hero_weapon_group.draw(screen)
+    hwalls_group.draw(screen)
+    screen.blit(Panel().image, (0, HEIGHT - 80))
+    clock.tick(FPS)
+    if proof_for_song:
+        screen.blit(image_song_on, (160, HEIGHT - 40))
+    else:
+        screen.blit(image_song_off, (160, HEIGHT - 40))
+    if proof_for_sound:
+        screen.blit(image_sound_on, (160, HEIGHT - 80))
+    else:
+        screen.blit(image_sound_off, (160, HEIGHT - 80))
+    menu = pygame.transform.scale(load_image('menu.png'), (100, 50))
+    exit = pygame.transform.scale(load_image('exit.png'), (40, 40))
+    retry = pygame.transform.scale(load_image('retry.png'), (40, 40))
+    screen.blit(menu, (205, 205))
+    screen.blit(exit, (210, 210))
+    screen.blit(retry, (260, 210))
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return
+                elif event.key == pygame.K_a:
+                    l = True
+                elif event.key == pygame.K_w:
+                    h = True
+                elif event.key == pygame.K_s:
+                    d = True
+                elif event.key == pygame.K_d:
+                    r = True
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_a:
+                    l = False
+                elif event.key == pygame.K_w:
+                    h = False
+                elif event.key == pygame.K_s:
+                    d = False
+                elif event.key == pygame.K_d:
+                    r = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if (event.button == 1 and 210 <= pygame.mouse.get_pos()[0] <= 250 and
+                        210 <= pygame.mouse.get_pos()[1] <= 250):
+                    terminate()
+                elif (event.button == 1 and 260 <= pygame.mouse.get_pos()[0] <= 300 and
+                        210 <= pygame.mouse.get_pos()[1] <= 250):
+                        pass
+                if event.button == 1:
+                    if 160 < pygame.mouse.get_pos()[0] < 200 and HEIGHT - 40 <= pygame.mouse.get_pos()[1] <= HEIGHT:
+                        if proof_for_song:
+                            pygame.mixer.music.pause()
+                            proof_for_song = False
+                        else:
+                            pygame.mixer.music.unpause()
+                            proof_for_song = True
+                    elif 160 < pygame.mouse.get_pos()[0] < 200 and HEIGHT - 80 <= pygame.mouse.get_pos()[
+                        1] < HEIGHT - 40:
+                        if proof_for_sound:
+                            proof_for_sound = False
+                        else:
+                            proof_for_sound = True
+        if proof_for_song:
+            screen.blit(image_song_on, (160, HEIGHT - 40))
+        else:
+            screen.blit(image_song_off, (160, HEIGHT - 40))
+        if proof_for_sound:
+            screen.blit(image_sound_on, (160, HEIGHT - 80))
+        else:
+            screen.blit(image_sound_off, (160, HEIGHT - 80))
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 def start_screen():
     fon = pygame.transform.scale(load_image('fon.png'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
@@ -43,9 +157,13 @@ def start_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                if 105 <= pygame.mouse.get_pos()[0] <= 393 and 113 <= pygame.mouse.get_pos()[1] <= 397:
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if (event.button == 1 and 105 <= pygame.mouse.get_pos()[0] <= 393 and
+                        113 <= pygame.mouse.get_pos()[1] <= 397):
                     return
+                elif event.button == 1 and pygame.mouse.get_pos()[0] <= 61 and pygame.mouse.get_pos()[1] <= 31:
+                    info_screen()
+                    screen.blit(fon, (0, 0))
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -53,9 +171,10 @@ def start_screen():
 def load_level(filename):
     filename = "data/" + filename
     with open(filename, 'r') as mapFile:
-        level_map = [line.strip() for line in mapFile]
+        level_map = [line for line in mapFile]
     max_width = max(map(len, level_map))
-    return list(map(lambda x: x.ljust(max_width, '#'), level_map))
+    level_map = list(map(lambda x: x.ljust(max_width, " "), level_map))
+    return level_map
 
 
 def generate_level(level):
@@ -714,7 +833,9 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_a:
+            if event.key == pygame.K_ESCAPE:
+                pause()
+            elif event.key == pygame.K_a:
                 l = True
             elif event.key == pygame.K_w:
                 h = True
@@ -788,4 +909,5 @@ while running:
         screen.blit(image_sound_on, (160, HEIGHT - 80))
     else:
         screen.blit(image_sound_off, (160, HEIGHT - 80))
+    rte = pygame.display.flip()
     pygame.display.flip()
