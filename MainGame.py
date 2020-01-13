@@ -178,6 +178,7 @@ def load_level(filename):
 
 
 def generate_level(level):
+    global laser_max_size
     new_player, x, y = None, None, None
     for y in range(len(level)):
         for x in range(len(level[y])):
@@ -194,6 +195,7 @@ def generate_level(level):
             elif level[y][x] == '@':
                 Tile('empty', x, y)
                 px, py = x, y
+    laser_max_size = int((len(max(level, key=lambda x: len(x))) ** 2 + len(level) ** 2) ** 0.5)
     new_player = Player(px, py)
     for y in range(len(level)):
         for x in range(len(level[y])):
@@ -416,12 +418,12 @@ class Projectile(pygame.sprite.Sprite):
             self.proof_for_damage = True
             self.color = COLOR[color]
             if abs(self.initial_coords[0] - self.final_coords[0]) > abs(self.initial_coords[1] - self.final_coords[1]):
-                self.initial_width = 1000
-                self.initial_height = max(1000 * abs(self.initial_coords[1] - self.final_coords[1]) /
+                self.initial_width = laser_max_size * tile_height
+                self.initial_height = max(self.initial_width * abs(self.initial_coords[1] - self.final_coords[1]) /
                                           abs(self.initial_coords[0] - self.final_coords[0]), 3)
             else:
-                self.initial_height = 1000
-                self.initial_width = max(3, 1000 * abs(self.initial_coords[0] - self.final_coords[0]) /
+                self.initial_height = laser_max_size * tile_width
+                self.initial_width = max(3, self.initial_height * abs(self.initial_coords[0] - self.final_coords[0]) /
                                          abs(self.initial_coords[1] - self.final_coords[1]))
             self.image = pygame.Surface((self.initial_width, self.initial_height))
             self.image.set_colorkey(self.image.get_at((0, 0)))
@@ -813,9 +815,9 @@ b_blaster = Weapon(6, 2, 4, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
 hero_weapon_group.add(colt)
 colt.remove(weapons_group)
 player, level_x, level_y = generate_level(load_level('map.txt'))
-enemy = Enemy(10, 5, 5, 'enemy1.png', colt3, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-enemy1 = Enemy(10, 5, 7, 'enemy1.png', g_blaster, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-enemy2 = Enemy(10, 7, 5, 'enemy1.png', colt4, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+enemy = Enemy(10, 13, 29, 'enemy1.png', colt3, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+enemy1 = Enemy(10, 10, 25, 'enemy1.png', g_blaster, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+enemy2 = Enemy(10, 12, 21, 'enemy1.png', colt4, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
 running = True
 camera = Camera()
 h = False
