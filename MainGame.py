@@ -3,6 +3,7 @@ import os
 import sys
 from math import ceil, atan, degrees, sin, radians
 from pygame import mixer
+from random import randint
 
 
 def load_image(name, colorkey=None):
@@ -19,7 +20,7 @@ def load_image(name, colorkey=None):
 
 def playing_song(name):
     mixer.music.load(os.path.join('data', name))
-    mixer.music.play()
+    mixer.music.play(-1)
 
 
 def playing_sound(name):
@@ -102,8 +103,13 @@ class Tile(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
+        self.coins = 0
+        self.f = True
+        self.regulator = 0
+        self.regenerator = -1
         self.fire = True
         self.brake = 0
+        self.imagedeath = player_death
         self.c = 0
         self.health = HEALTH
         self.protection = PROTECTION
@@ -120,94 +126,122 @@ class Player(pygame.sprite.Sprite):
         hero_weapon_group.add(self.weapon)
 
     def animation(self):
-        if r or l or h or d:
-            if self.c < 25:
-                if pygame.mouse.get_pos()[0] > self.rect.x + 18:
-                    self.image = player_animation[0]
-                else:
-                    self.image = player_animation1[0]
-            elif self.c < 50:
-                if pygame.mouse.get_pos()[0] > self.rect.x + 18:
-                    self.image = player_animation[1]
-                else:
-                    self.image = player_animation1[1]
-            else:
-                self.c = -1
-            self.c += 1
-        else:
-            self.c = 0
+        if self.health > 0:
             if pygame.mouse.get_pos()[0] > self.rect.x + 18:
-                self.image = player_image
+                self.weapon.rect.topleft = (self.rect.x + WEAPON_X - self.weapon.butt, self.rect.y + WEAPON_Y)
+                x_distance = pygame.mouse.get_pos()[0] - self.weapon.rect.x
+                if x_distance == 0:
+                    if pygame.mouse.get_pos()[1] > self.rect.y:
+                        angle = 90
+                    else:
+                        angle = -90
+                else:
+                    angle = degrees(atan((self.weapon.rect.y - pygame.mouse.get_pos()[1]) / x_distance))
+                    angle = degrees(atan((self.weapon.rect.y - (self.weapon.rect.h - self.weapon.rect.w) * sin(
+                        radians(angle)) - pygame.mouse.get_pos()[1]) / x_distance))
+                self.weapon.image = pygame.transform.rotate(self.weapon.main_image, angle)
+                if pygame.mouse.get_pos()[1] < self.weapon.rect.y:
+                    self.weapon.rect = self.weapon.rect.move(0, (self.weapon.rect.h - self.weapon.rect.w) * sin(
+                        radians(angle)))
             else:
-                self.image = player_image1
+                self.weapon.rect.topright = (self.rect.x - WEAPON_X + self.weapon.butt + self.rect.w,
+                                              self.rect.y + WEAPON_Y)
+                x_distance = pygame.mouse.get_pos()[0] - self.weapon.rect.topright[0]
+                if x_distance == 0:
+                    if pygame.mouse.get_pos()[1] > self.rect.y:
+                        angle = -90
+                    else:
+                        angle = 90
+                else:
+                    angle = degrees(atan((self.weapon.rect.y - pygame.mouse.get_pos()[1]) / x_distance))
+                    angle = degrees(atan((self.weapon.rect.y - (self.weapon.rect.h - self.weapon.rect.w) * sin(
+                        radians(angle)) - pygame.mouse.get_pos()[1]) / x_distance))
+                self.weapon.image = pygame.transform.rotate(self.weapon.main_image1, angle)
+                if pygame.mouse.get_pos()[1] < self.weapon.rect.y:
+                    self.weapon.rect = self.weapon.rect.move(0, (self.weapon.rect.w - self.weapon.rect.h) * sin(
+                        radians(angle)))
+                    self.weapon.rect = self.weapon.rect.move(
+                        -(self.weapon.rect.w - self.weapon.rect.h) * sin(radians(angle)), 0)
+                else:
+                    self.weapon.rect = self.weapon.rect.move(
+                        (self.weapon.rect.w - self.weapon.rect.h) * sin(radians(angle)), 0)
+            if r or l or h or d:
+                if self.c < 25:
+                    if pygame.mouse.get_pos()[0] > self.rect.x + 18:
+                        self.image = player_animation[0]
+                    else:
+                        self.image = player_animation1[0]
+                elif self.c < 50:
+                    if pygame.mouse.get_pos()[0] > self.rect.x + 18:
+                        self.image = player_animation[1]
+                    else:
+                        self.image = player_animation1[1]
+                else:
+                    self.c = -1
+                self.c += 1
+            else:
+                self.c = 0
+                if pygame.mouse.get_pos()[0] > self.rect.x + 18:
+                    self.image = player_image
+                else:
+                    self.image = player_image1
 
     def update(self):
-        if pygame.mouse.get_pos()[0] > self.rect.x + 18:
-            self.weapon.rect.topleft = (self.rect.x + WEAPON_X - self.weapon.butt, self.rect.y + WEAPON_Y)
-            x_distance = pygame.mouse.get_pos()[0] - self.weapon.rect.x
-            if x_distance == 0:
-                if pygame.mouse.get_pos()[1] > self.rect.y:
-                    angle = 90
-                else:
-                    angle = -90
-            else:
-                angle = degrees(atan((self.weapon.rect.y - pygame.mouse.get_pos()[1]) / x_distance))
-                angle = degrees(atan((self.weapon.rect.y - (self.weapon.rect.h - self.weapon.rect.w) * sin(
-                    radians(angle)) - pygame.mouse.get_pos()[1]) / x_distance))
-            self.weapon.image = pygame.transform.rotate(self.weapon.main_image, angle)
-            if pygame.mouse.get_pos()[1] < self.weapon.rect.y:
-                self.weapon.rect = self.weapon.rect.move(0, (self.weapon.rect.h - self.weapon.rect.w) * sin(
-                    radians(angle)))
-        else:
-            self.weapon.rect.topright = (self.rect.x - WEAPON_X + self.weapon.butt + self.rect.w,
-                                          self.rect.y + WEAPON_Y)
-            x_distance = pygame.mouse.get_pos()[0] - self.weapon.rect.topright[0]
-            if x_distance == 0:
-                if pygame.mouse.get_pos()[1] > self.rect.y:
-                    angle = -90
-                else:
-                    angle = 90
-            else:
-                angle = degrees(atan((self.weapon.rect.y - pygame.mouse.get_pos()[1]) / x_distance))
-                angle = degrees(atan((self.weapon.rect.y - (self.weapon.rect.h - self.weapon.rect.w) * sin(
-                    radians(angle)) - pygame.mouse.get_pos()[1]) / x_distance))
-            self.weapon.image = pygame.transform.rotate(self.weapon.main_image1, angle)
-            if pygame.mouse.get_pos()[1] < self.weapon.rect.y:
-                self.weapon.rect = self.weapon.rect.move(0, (self.weapon.rect.w - self.weapon.rect.h) * sin(
-                    radians(angle)))
-                self.weapon.rect = self.weapon.rect.move(
-                    -(self.weapon.rect.w - self.weapon.rect.h) * sin(radians(angle)), 0)
-            else:
-                self.weapon.rect = self.weapon.rect.move(
-                    (self.weapon.rect.w - self.weapon.rect.h) * sin(radians(angle)), 0)
-        if l:
-            self.rect.x -= 1
-            if pygame.sprite.spritecollideany(self, walls_group):
-                self.rect.x += 1
-        if h:
-            self.rect.y -= 1
-            if pygame.sprite.spritecollideany(self, walls_group):
-                self.rect.y += 1
-        if d:
-            self.rect.y += 1
-            if pygame.sprite.spritecollideany(self, walls_group):
-                self.rect.y -= 1
-        if r:
-            self.rect.x += 1
-            if pygame.sprite.spritecollideany(self, walls_group):
+        if self.health > 0:
+            if l:
                 self.rect.x -= 1
-        if not self.fire:
-            self.brake += 1
-            if self.brake >= FPS // self.weapon.rate_of_fire:
-                self.fire = True
+                if pygame.sprite.spritecollideany(self, walls_group):
+                    self.rect.x += 1
+            if h:
+                self.rect.y -= 1
+                if pygame.sprite.spritecollideany(self, walls_group):
+                    self.rect.y += 1
+            if d:
+                self.rect.y += 1
+                if pygame.sprite.spritecollideany(self, walls_group):
+                    self.rect.y -= 1
+            if r:
+                self.rect.x += 1
+                if pygame.sprite.spritecollideany(self, walls_group):
+                    self.rect.x -= 1
+            if not self.fire:
+                self.brake += 1
+                if self.brake >= FPS // self.weapon.rate_of_fire:
+                    self.fire = True
+            for projectile in enemy_projectile:
+                if pygame.sprite.collide_mask(self, projectile):
+                    if projectile.type_of_projectile == 'bullet':
+                        self.regenerator = -1
+                        self.regulator = -1
+                        self.health = max(0, min(self.health + self.protection - projectile.damage, HEALTH))
+                        self.protection = max(0, self.protection - projectile.damage)
+                        playing_sound("for_gun_1.ogg")
+                        projectile.kill()
+                    elif projectile.proof_for_damage:
+                        self.regenerator = -1
+                        self.regulator = -1
+                        self.health = max(0, min(self.health + self.protection - projectile.damage, HEALTH))
+                        self.protection = max(0, self.protection - projectile.damage)
+            if self.regulator == 5 * FPS:
+                self.regenerator = (self.regenerator + 1) % (2 * FPS)
+            else:
+                self.regulator += 1
+            if self.regenerator == 2 * FPS - 1 and self.protection != PROTECTION:
+                self.protection += 1
+        else:
+            if self.f:
+                self.rect = self.rect.move(0, self.rect.h - self.imagedeath.get_rect().h)
+                self.image = self.imagedeath
+                self.f = False
 
     def shot(self):
-        if self.bullets >= self.weapon.cost and self.fire:
-            player.bullets -= player.weapon.cost
-            self.brake = 0
-            Projectile(self.weapon.type_of_projectile, self.weapon.rect.center, pygame.mouse.get_pos(),
-                       self.weapon.color)
-            self.fire = False
+        if self.health > 0:
+            if self.bullets >= self.weapon.cost and self.fire:
+                player.bullets -= player.weapon.cost
+                self.brake = 0
+                hero_projectile.add(Projectile(self.weapon.type_of_projectile, self.weapon.rect.center,
+                                               pygame.mouse.get_pos(), self.weapon.color, self.weapon.damage))
+                self.fire = False
 
 
 class Camera:
@@ -252,13 +286,15 @@ class Panel:
 
 
 class Projectile(pygame.sprite.Sprite):
-    def __init__(self, type_of_projectile, initial_coords, final_coords, color):
-        super().__init__(all_sprites, hero_projectile)
+    def __init__(self, type_of_projectile, initial_coords, final_coords, color, damage):
+        super().__init__(all_sprites)
+        self.damage = damage
         self.type_of_projectile = type_of_projectile
         self.initial_coords = initial_coords
         self.final_coords = final_coords
         if type_of_projectile == 'laser':
             self.c = 0
+            self.proof_for_damage = True
             self.color = COLOR[color]
             if abs(self.initial_coords[0] - self.final_coords[0]) > abs(self.initial_coords[1] - self.final_coords[1]):
                 self.initial_width = 1000
@@ -344,7 +380,6 @@ class Projectile(pygame.sprite.Sprite):
             self.rect.center = self.initial_coords
             self.x = 0
             self.y = 0
-            self.mask = pygame.mask.from_surface(self.image)
             self.coefficient_x = abs(self.initial_coords[0] - self.final_coords[0])
             self.coefficient_y = abs(self.initial_coords[1] - self.final_coords[1])
             if self.rect.center[0] >= self.final_coords[0] and self.rect.center[1] >= self.final_coords[1]:
@@ -359,11 +394,14 @@ class Projectile(pygame.sprite.Sprite):
             elif self.rect.center[0] >= self.final_coords[0] and self.rect.center[1] <= self.final_coords[1]:
                 self.unit_vector = 3 / (self.coefficient_x + self.coefficient_y)
                 self.vector = (- self.unit_vector * self.coefficient_x, self.unit_vector * self.coefficient_y)
+        self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
         if self.type_of_projectile == 'laser':
             if self.c == 0:
                 playing_sound("lazer.ogg")
+            elif self.c == 1:
+                self.proof_for_damage = False
             self.c += 1
             if self.c == 10:
                 self.kill()
@@ -450,6 +488,149 @@ class Potion(pygame.sprite.Sprite):
                 pot.kill()
 
 
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, health, pos_x, pos_y, filename, weapon, animation, animation1, death, brake):
+        super().__init__(enemy_group, all_sprites)
+        self.f = True
+        self.imagedeath = load_image(death, -1)
+        self.brake = brake
+        self.image1 = load_image(filename, -1)
+        self.image2 = pygame.transform.flip(self.image1, True, False)
+        self.image = self.image1
+        self.animation2 = (load_image(animation, -1), load_image(animation1, -1))
+        self.animation1 = (pygame.transform.flip(load_image(animation, -1), True, False),
+                             pygame.transform.flip(load_image(animation1, -1), True, False))
+        self.health = health
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (pos_x * tile_width, pos_y * tile_height)
+        self.weapon = weapon
+        enemy_weapon_group.add(self.weapon)
+        self.weapon.remove(weapons_group)
+        self.k = randint(0, 4 * FPS)
+        self.c = 0
+        self.regulator = 0
+
+    def update(self):
+        if self.health > 0:
+            if player.rect.center[0] > self.rect.x + 15:
+                self.weapon.rect.topleft = (self.rect.x + WEAPON_X - self.weapon.butt, self.rect.y + WEAPON_Y)
+                x_distance = player.rect.center[0] - self.weapon.rect.x
+                if -2 <= x_distance <= 2:
+                    if player.rect.center[1] <= self.rect.center[1]:
+                        angle = 90
+                    else:
+                        angle = -90
+                else:
+                    angle = degrees(atan((self.weapon.rect.y - player.rect.center[1]) / x_distance))
+                    angle = degrees(atan((self.weapon.rect.y - (self.weapon.rect.h - self.weapon.rect.w) * sin(
+                        radians(angle)) - player.rect.center[1]) / x_distance))
+                self.weapon.image = pygame.transform.rotate(self.weapon.main_image, angle)
+                if player.rect.center[1] < self.weapon.rect.y:
+                    self.weapon.rect = self.weapon.rect.move(0, (self.weapon.rect.h - self.weapon.rect.w) * sin(
+                        radians(angle)))
+            else:
+                self.weapon.rect.topright = (self.rect.x - WEAPON_X + self.weapon.butt + self.rect.w,
+                                              self.rect.y + WEAPON_Y)
+                x_distance = player.rect.center[0] - self.weapon.rect.topright[0]
+                if -2 <= x_distance <= 2:
+                    if player.rect.center[1] >= self.rect.center[1]:
+                        angle = 90
+                    else:
+                        angle = -90
+                else:
+                    angle = degrees(atan((self.weapon.rect.y - player.rect.center[1]) / x_distance))
+                    angle = degrees(atan((self.weapon.rect.y - (self.weapon.rect.h - self.weapon.rect.w) * sin(
+                        radians(angle)) - player.rect.center[1]) / x_distance))
+                self.weapon.image = pygame.transform.rotate(self.weapon.main_image1, angle)
+                if player.rect.center[1] < self.weapon.rect.y:
+                    self.weapon.rect = self.weapon.rect.move(0, (self.weapon.rect.w - self.weapon.rect.h) * sin(
+                        radians(angle)))
+                    self.weapon.rect = self.weapon.rect.move(
+                        -(self.weapon.rect.w - self.weapon.rect.h) * sin(radians(angle)), 0)
+                else:
+                    self.weapon.rect = self.weapon.rect.move(
+                        (self.weapon.rect.w - self.weapon.rect.h) * sin(radians(angle)), 0)
+            for projectile in hero_projectile:
+                if pygame.sprite.collide_mask(self, projectile):
+                    if projectile.type_of_projectile == 'bullet':
+                        self.regenerator = -1
+                        self.regulator = -1
+                        self.health = max(0, self.health - projectile.damage)
+                        playing_sound("for_gun_1.ogg")
+                        projectile.kill()
+                    elif projectile.proof_for_damage:
+                        self.health = max(0, self.health - projectile.damage)
+        else:
+            if self.f:
+                player.coins += 2
+                player.bullets = min(BULLETS, player.bullets + 2)
+                self.weapon.image = self.weapon.main_image
+                weapons_group.add(self.weapon)
+                self.weapon.remove(enemy_weapon_group)
+                self.rect = self.rect.move(0, self.rect.height - self.imagedeath.get_rect().height)
+                self.image = self.imagedeath
+                self.f = False
+
+    def go(self):
+        if self.regulator == 0:
+            if player.rect.center[0] > self.rect.center[0]:
+                self.rect.x += 1
+                if pygame.sprite.spritecollideany(self, walls_group):
+                    self.rect.x -= 1
+            elif player.rect.center[0] < self.rect.center[0]:
+                self.rect.x -= 1
+                if pygame.sprite.spritecollideany(self, walls_group):
+                    self.rect.x += 1
+            if player.rect.center[1] > self.rect.center[1]:
+                self.rect.y += 1
+                if pygame.sprite.spritecollideany(self, walls_group):
+                    self.rect.y -= 1
+            elif player.rect.center[1] < self.rect.center[1]:
+                self.rect.y -= 1
+                if pygame.sprite.spritecollideany(self, walls_group):
+                    self.rect.y += 1
+            if self.c < 25:
+                if player.rect.center[0] > self.rect.center[0]:
+                    self.image = self.animation2[0]
+                else:
+                    self.image = self.animation1[0]
+            elif self.c < 50:
+                if player.rect.center[0] > self.rect.center[0]:
+                    self.image = self.animation2[1]
+                else:
+                    self.image = self.animation1[1]
+        self.regulator = (self.regulator + 1) % self.brake
+        if self.c == 50:
+            self.c = -1
+        self.c += 1
+
+    def stop(self):
+        self.c = 0
+        if self.rect.center[0] >= player.rect.center[0]:
+            self.image = self.image2
+        else:
+            self.image = self.image1
+
+    def shot(self):
+        enemy_projectile.add(Projectile(self.weapon.type_of_projectile, self.weapon.rect.center, player.rect.center,
+                                        self.weapon.color, self.weapon.damage))
+
+    def behavior(self):
+        if self.health > 0:
+            if self.k < 2 * FPS:
+                self.go()
+            elif 2 * FPS <= self.k < 4 * FPS:
+                self.stop()
+            else:
+                self.shot()
+            self.k = (self.k + 1) % (4 * FPS + 1)
+        else:
+            self.death()
+
+    def death(self):
+        pass
+
+
 FPS = 200
 pygame.init()
 WIDTH = 500
@@ -471,6 +652,7 @@ player_animation = (load_image('heromove1.png', -1), load_image('heromove2.png',
 player_image1 = pygame.transform.flip(load_image('hero.png', -1), True, False)
 player_animation1 = (pygame.transform.flip(load_image('heromove1.png', -1), True, False),
                      pygame.transform.flip(load_image('heromove2.png', -1), True, False))
+player_death = load_image('herodeath.png', -1)
 image_sound_on = load_image('volume_on.png')
 image_sound_off = load_image('volume_off.png')
 image_song_on = load_image('song_on.png')
@@ -484,9 +666,12 @@ potion_group = pygame.sprite.Group()
 weapons_group = pygame.sprite.Group()
 hero_weapon_group = pygame.sprite.GroupSingle()
 hero_projectile = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
+enemy_projectile = pygame.sprite.Group()
 hwalls_group = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
+enemy_weapon_group = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 
@@ -503,11 +688,15 @@ BULLET_POTION2 = 60
 BULLET_POTION3 = 120
 colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
 colt3 = Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet')
+colt4 = Weapon(2, 0, 1, 'colt2.png', 1, 1, 0, 'bullet')
 g_blaster = Weapon(6, 2, 4, 'g_blaster.png', 4, 5, 4, 'laser', 'green')
-g_blaster = Weapon(6, 2, 4, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
+b_blaster = Weapon(6, 2, 4, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
 hero_weapon_group.add(colt)
 colt.remove(weapons_group)
 player, level_x, level_y = generate_level(load_level('map.txt'))
+enemy = Enemy(10, 5, 5, 'enemy1.png', colt3, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+enemy1 = Enemy(10, 5, 7, 'enemy1.png', g_blaster, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+enemy2 = Enemy(10, 7, 5, 'enemy1.png', colt4, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
 running = True
 camera = Camera()
 h = False
@@ -568,10 +757,13 @@ while running:
                 fire = False
     if fire:
         player.shot()
-    player.animation()
-    player.update()
-
     hero_projectile.update()
+    for sprite in enemy_group:
+        sprite.behavior()
+        sprite.update()
+    enemy_projectile.update()
+    player.update()
+    player.animation()
     camera.update(player)
     for sprite in all_sprites:
         camera.apply(sprite)
@@ -579,7 +771,10 @@ while running:
     potion_group.draw(screen)
     walls_group.draw(screen)
     weapons_group.draw(screen)
+    enemy_group.draw(screen)
+    enemy_weapon_group.draw(screen)
     player_group.draw(screen)
+    enemy_projectile.draw(screen)
     hero_projectile.draw(screen)
     hero_weapon_group.draw(screen)
     hwalls_group.draw(screen)
