@@ -181,7 +181,7 @@ def load_level(filename):
 
 
 def generate_level(level):
-    global laser_max_size
+    global laser_max_size, move_map
     new_player, x, y = None, None, None
     for y in range(len(level)):
         for x in range(len(level[y])):
@@ -204,7 +204,11 @@ def generate_level(level):
         for x in range(len(level[y])):
             if level[y][x] == '#':
                 Tile('wall', x, y)
-    return new_player, px, py
+    if not move_map:
+        return new_player, px, py
+    else:
+        return new_player
+
 
 
 class Tile(pygame.sprite.Sprite):
@@ -773,7 +777,7 @@ def game():
         tile_images, potion_images, player_image, player_animation, player_death, HEALTH, PROTECTION, BULLETS, colt, \
         colt3, colt4, g_blaster, b_blaster, proof_for_song, proof_for_sound, running, enemy, enemy1, enemy2, h, d, l,\
         r, screen, HEALTH_POTION1, BULLET_POTION1, BULLET_POTION2, BULLET_POTION3, HEALTH_POTION2, HEALTH_POTION3, \
-        clock, image_sound_on, image_sound_off, image_song_off, image_song_on, open_start_screen, move_map
+        clock, image_sound_on, image_sound_off, image_song_off, image_song_on, open_start_screen, move_map, colt
     FPS = 200
     pygame.init()
     WIDTH = 500
@@ -803,7 +807,6 @@ def game():
     tile_width = 32
     tile_height = 32
 
-    player = None
     volume_group = pygame.sprite.Group()
     potion_group = pygame.sprite.Group()
     weapons_group = pygame.sprite.Group()
@@ -828,16 +831,32 @@ def game():
     BULLET_POTION1 = 30
     BULLET_POTION2 = 60
     BULLET_POTION3 = 120
-    colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
-    colt3 = Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet')
-    colt4 = Weapon(2, 0, 1, 'colt2.png', 1, 1, 0, 'bullet')
-    g_blaster = Weapon(6, 2, 1, 'g_blaster.png', 4, 5, 4, 'laser', 'green')
-    b_blaster = Weapon(6, 2, 1, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
-    hero_weapon_group.add(colt)
-    colt.remove(weapons_group)
     if move_map:
-        player, level_x, level_y = generate_level(load_level('map2.txt'))
+        pllayer = player
+        player = generate_level(load_level('map2.txt'))
+        player.coins = pllayer.coins
+        player.f = pllayer.f
+        player.regulator = pllayer.regulator
+        player.regenerator = pllayer.regenerator
+        player.fire = pllayer.fire
+        player.brake = pllayer.brake
+        player.c = pllayer.c
+        player.health = pllayer.health
+        player.protection = pllayer.protection
+        player.bullets = pllayer.bullets
+        player.number_of_weapon = pllayer.number_of_weapon
+        player.weapons = pllayer.weapons
+        player.weapon = pllayer.weapons[pllayer.number_of_weapon]
+        player.weapon.remove(weapons_group)
+        hero_weapon_group.add(player.weapon)
     else:
+        colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
+        colt3 = Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet')
+        colt4 = Weapon(2, 0, 1, 'colt2.png', 1, 1, 0, 'bullet')
+        g_blaster = Weapon(6, 2, 1, 'g_blaster.png', 4, 5, 4, 'laser', 'green')
+        b_blaster = Weapon(6, 2, 1, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
+        hero_weapon_group.add(colt)
+        colt.remove(weapons_group)
         player, level_x, level_y = generate_level(load_level('map.txt'))
     h = False
     d = False
