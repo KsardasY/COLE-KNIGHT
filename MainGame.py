@@ -17,9 +17,11 @@ def load_image(name, colorkey=None):
         image = image.convert_alpha()
     return image
 
+
 def playing_song(name):
     mixer.music.load(os.path.join('data', name))
     mixer.music.play(-1)
+
 
 def playing_sound(name):
     mixer.pre_init(44100, -16, 1, 512)
@@ -32,6 +34,39 @@ def playing_sound(name):
 def terminate():
     pygame.quit()
     sys.exit()
+
+
+def how_to_play_screen():
+    fon_info = pygame.transform.scale(load_image('fon_how_to_play.png'), (WIDTH, HEIGHT))
+    screen.blit(fon_info, (0, 0))
+    intro_text = ["Ходьба: ",
+                  "W - вверх, S - вниз",
+                  "D - вправо, A - влево",
+                  "F - подобрать предмет",
+                  "LMB - стрельба",
+                  "SPACE - переход в другую карту",
+                  "*для того, чтобы перейти на",
+                  "следущую карту, нужно убить",
+                  "всех врагов"]
+    font = pygame.font.Font(None, 35)
+    text_coord = 80
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 30
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1 and pygame.mouse.get_pos()[0] >= 439 and pygame.mouse.get_pos()[1] <= 30:
+                    return
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 def info_screen():
@@ -66,7 +101,7 @@ def info_screen():
 
 
 def pause():
-    global proof_for_song, proof_for_sound, l, h, r, d, running, open_start_screen
+    global proof_for_song, proof_for_sound, l, h, r, d, running, open_start_screen, move_map
     tiles_group.draw(screen)
     potion_group.draw(screen)
     walls_group.draw(screen)
@@ -88,12 +123,14 @@ def pause():
         screen.blit(image_sound_on, (160, HEIGHT - 80))
     else:
         screen.blit(image_sound_off, (160, HEIGHT - 80))
-    menu = pygame.transform.scale(load_image('menu.png'), (100, 50))
+    menu = pygame.transform.scale(load_image('menu.png'), (149, 50))
     exit = pygame.transform.scale(load_image('exit.png'), (40, 40))
     retry = pygame.transform.scale(load_image('retry.png'), (40, 40))
-    screen.blit(menu, (205, 205))
-    screen.blit(exit, (210, 210))
-    screen.blit(retry, (260, 210))
+    to_menu = pygame.transform.scale(load_image('to_exit_to_menu.png'), (40, 40))
+    screen.blit(menu, (185, 205))
+    screen.blit(exit, (190, 210))
+    screen.blit(retry, (240, 210))
+    screen.blit(to_menu, (290, 210))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -119,13 +156,20 @@ def pause():
                 elif event.key == pygame.K_d:
                     r = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if (event.button == 1 and 210 <= pygame.mouse.get_pos()[0] <= 250 and
+                if (event.button == 1 and 190 <= pygame.mouse.get_pos()[0] <= 230 and
                         210 <= pygame.mouse.get_pos()[1] <= 250):
                     terminate()
-                elif (event.button == 1 and 260 <= pygame.mouse.get_pos()[0] <= 300 and
+                elif (event.button == 1 and 240 <= pygame.mouse.get_pos()[0] <= 280 and
                         210 <= pygame.mouse.get_pos()[1] <= 250):
                     open_start_screen = False
                     running = False
+                    return
+                elif (event.button == 1 and 290 <= pygame.mouse.get_pos()[0] <= 330 and
+                        210 <= pygame.mouse.get_pos()[1] <= 250):
+                    running = False
+                    open_start_screen = True
+                    move_map = False
+                    pygame.mixer.music.pause()
                     return
                 if event.button == 1:
                     if 160 < pygame.mouse.get_pos()[0] < 200 and HEIGHT - 40 <= pygame.mouse.get_pos()[1] <= HEIGHT:
@@ -166,6 +210,9 @@ def start_screen():
                     return
                 elif event.button == 1 and pygame.mouse.get_pos()[0] <= 61 and pygame.mouse.get_pos()[1] <= 31:
                     info_screen()
+                    screen.blit(fon, (0, 0))
+                elif event.button == 1 and pygame.mouse.get_pos()[0] >= 337  and pygame.mouse.get_pos()[1] <= 29:
+                    how_to_play_screen()
                     screen.blit(fon, (0, 0))
         pygame.display.flip()
         clock.tick(FPS)
@@ -208,7 +255,6 @@ def generate_level(level):
         return new_player, px, py
     else:
         return new_player
-
 
 
 class Tile(pygame.sprite.Sprite):
@@ -848,7 +894,10 @@ def game():
         player.weapons = pllayer.weapons
         player.weapon = pllayer.weapons[pllayer.number_of_weapon]
         player.weapon.remove(weapons_group)
-        hero_weapon_group.add(player.weapon)
+        hero_weapon_group.add(pllayer.weapon)
+        pllayer = None
+        enemy = Enemy(10, 22, 8, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+                      'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
     else:
         colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
         colt3 = Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet')
@@ -858,15 +907,15 @@ def game():
         hero_weapon_group.add(colt)
         colt.remove(weapons_group)
         player, level_x, level_y = generate_level(load_level('map.txt'))
+        enemy = Enemy(10, 13, 29, 'enemy1.png', colt3, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        enemy1 = Enemy(10, 10, 25, 'enemy1.png', g_blaster, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        enemy2 = Enemy(10, 12, 21, 'enemy1.png', colt4, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
     h = False
     d = False
     l = False
     r = False
     if open_start_screen:
         start_screen()
-    enemy = Enemy(10, 13, 29, 'enemy1.png', colt3, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-    enemy1 = Enemy(10, 10, 25, 'enemy1.png', g_blaster, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-    enemy2 = Enemy(10, 12, 21, 'enemy1.png', colt4, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
     camera = Camera()
     fire = False
     if proof_for_song:
