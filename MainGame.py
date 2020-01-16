@@ -17,9 +17,11 @@ def load_image(name, colorkey=None):
         image = image.convert_alpha()
     return image
 
+
 def playing_song(name):
     mixer.music.load(os.path.join('data', name))
     mixer.music.play(-1)
+
 
 def playing_sound(name):
     mixer.pre_init(44100, -16, 1, 512)
@@ -32,6 +34,11 @@ def playing_sound(name):
 def terminate():
     pygame.quit()
     sys.exit()
+
+
+def create_particles(quantity, coords):
+    for _ in range(quantity):
+        Particle(coords)
 
 
 def info_screen():
@@ -208,7 +215,6 @@ def generate_level(level):
         return new_player, px, py
     else:
         return new_player
-
 
 
 class Tile(pygame.sprite.Sprite):
@@ -397,6 +403,7 @@ class Panel:
         text_health = font.render(str(player.health) + '/' + str(HEALTH), 1, COLOR['white'])
         text_protection = font.render(str(player.protection) + '/' + str(PROTECTION), 1, COLOR['white'])
         text_bullets = font.render(str(player.bullets) + '/' + str(BULLETS), 1, COLOR['white'])
+        text_coin = font.render(str(player.coins), 1, COLOR['black'])
         self.image = pygame.Surface((160, 80))
         self.image.fill(COLOR['azure'])
         pygame.draw.rect(self.image, COLOR['blue'], (0, 0, 160, 80), 1)
@@ -410,12 +417,15 @@ class Panel:
         pygame.draw.rect(self.image, COLOR['orange'], (35, 30, ceil(120 * player.protection / PROTECTION), 20))
 
         self.image.blit(load_image('bullets.png', -1), (5, 55))
-        pygame.draw.rect(self.image, COLOR['black'], (34, 54, 122, 22))
-        pygame.draw.rect(self.image, COLOR['magenta'], (35, 55, ceil(120 * player.bullets / BULLETS), 20))
+        pygame.draw.rect(self.image, COLOR['black'], (34, 54, 72, 22))
+        pygame.draw.rect(self.image, COLOR['magenta'], (35, 55, ceil(70 * player.bullets / BULLETS), 20))
+
+        self.image.blit(load_image('coins.png', -1), (110, 55))
 
         self.image.blit(text_health, (95 - text_health.get_width() // 2, 9))
         self.image.blit(text_protection, (95 - text_protection.get_width() // 2, 34))
-        self.image.blit(text_bullets, (95 - text_bullets.get_width() // 2, 59))
+        self.image.blit(text_bullets, (70 - text_bullets.get_width() // 2, 59))
+        self.image.blit(text_coin, (132, 59))
 
 
 class Projectile(pygame.sprite.Sprite):
@@ -695,6 +705,7 @@ class Enemy(pygame.sprite.Sprite):
                         self.health = max(0, self.health - projectile.damage)
         else:
             if self.f:
+                create_particles(20, self.rect.center)
                 player.coins += 2
                 player.bullets = min(BULLETS, player.bullets + 2)
                 self.weapon.image = self.weapon.main_image
@@ -764,6 +775,22 @@ class Enemy(pygame.sprite.Sprite):
         pass
 
 
+class Particle(pygame.sprite.Sprite):
+    def __init__(self, coords):
+        super().__init__(all_sprites, particle_group)
+        self.vector = (randint(-3, 3), randint(-3, 3))
+        self.image = particle_images[randint(0, 2)]
+        self.rect = self.image.get_rect()
+        self.rect.center = coords
+        self.c = 0
+
+    def update(self):
+        self.rect = self.rect.move(self.vector)
+        if self.c == 10:
+            self.kill()
+        self.c += 1
+
+
 move_map = False
 open_start_screen = True
 proof_for_song = True
@@ -777,7 +804,8 @@ def game():
         tile_images, potion_images, player_image, player_animation, player_death, HEALTH, PROTECTION, BULLETS, colt, \
         colt3, colt4, g_blaster, b_blaster, proof_for_song, proof_for_sound, running, enemy, enemy1, enemy2, h, d, l,\
         r, screen, HEALTH_POTION1, BULLET_POTION1, BULLET_POTION2, BULLET_POTION3, HEALTH_POTION2, HEALTH_POTION3, \
-        clock, image_sound_on, image_sound_off, image_song_off, image_song_on, open_start_screen, move_map, colt
+        clock, image_sound_on, image_sound_off, image_song_off, image_song_on, open_start_screen, move_map, colt,\
+        particle_group, particle_images
     FPS = 200
     pygame.init()
     WIDTH = 500
@@ -799,6 +827,7 @@ def game():
     player_image1 = pygame.transform.flip(load_image('hero.png', -1), True, False)
     player_animation1 = (pygame.transform.flip(load_image('heromove1.png', -1), True, False),
                          pygame.transform.flip(load_image('heromove2.png', -1), True, False))
+    particle_images = [load_image('bullet2.png', -1), load_image('hearth.png', -1), load_image('coin.png', -1)]
     player_death = load_image('herodeath.png', -1)
     image_sound_on = load_image('volume_on.png')
     image_sound_off = load_image('volume_off.png')
@@ -807,6 +836,7 @@ def game():
     tile_width = 32
     tile_height = 32
 
+    particle_group = pygame.sprite.Group()
     volume_group = pygame.sprite.Group()
     potion_group = pygame.sprite.Group()
     weapons_group = pygame.sprite.Group()
@@ -865,7 +895,7 @@ def game():
     if open_start_screen:
         start_screen()
     enemy = Enemy(10, 13, 29, 'enemy1.png', colt3, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-    enemy1 = Enemy(10, 10, 25, 'enemy2.png', g_blaster, 'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+    enemy1 = Enemy(10, 10, 27, 'enemy2.png', g_blaster, 'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
     enemy2 = Enemy(100, 12, 21, 'boss.png', colt4, 'bossm1.png', 'bossm2.png', 'bossd.png', 3)
     camera = Camera()
     fire = False
@@ -929,6 +959,7 @@ def game():
         for sprite in enemy_group:
             sprite.behavior()
             sprite.update()
+        particle_group.update()
         enemy_projectile.update()
         player.update()
         player.animation()
@@ -945,6 +976,7 @@ def game():
         player_group.draw(screen)
         hero_projectile.draw(screen)
         hero_weapon_group.draw(screen)
+        particle_group.draw(screen)
         hwalls_group.draw(screen)
         screen.blit(Panel().image, (0, HEIGHT - 80))
         clock.tick(FPS)
