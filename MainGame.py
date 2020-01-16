@@ -123,14 +123,14 @@ def pause():
         screen.blit(image_sound_on, (160, HEIGHT - 80))
     else:
         screen.blit(image_sound_off, (160, HEIGHT - 80))
-    menu = pygame.transform.scale(load_image('menu.png'), (149, 50))
+    menu = pygame.transform.scale(load_image('menu.png'), (100, 95))
     exit = pygame.transform.scale(load_image('exit.png'), (40, 40))
     retry = pygame.transform.scale(load_image('retry.png'), (40, 40))
-    to_menu = pygame.transform.scale(load_image('to_exit_to_menu.png'), (40, 40))
+    to_menu = pygame.transform.scale(load_image('to_exit_to_menu.png'), (90, 40))
     screen.blit(menu, (185, 205))
     screen.blit(exit, (190, 210))
     screen.blit(retry, (240, 210))
-    screen.blit(to_menu, (290, 210))
+    screen.blit(to_menu, (190, 255))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -164,8 +164,8 @@ def pause():
                     open_start_screen = False
                     running = False
                     return
-                elif (event.button == 1 and 290 <= pygame.mouse.get_pos()[0] <= 330 and
-                        210 <= pygame.mouse.get_pos()[1] <= 250):
+                elif (event.button == 1 and 190 <= pygame.mouse.get_pos()[0] <= 280 and
+                        255 <= pygame.mouse.get_pos()[1] <= 295):
                     running = False
                     open_start_screen = True
                     move_map = False
@@ -814,44 +814,51 @@ move_map = False
 open_start_screen = True
 proof_for_song = True
 proof_for_sound = True
+FPS = 200
+pygame.init()
+WIDTH = 500
+HEIGHT = 500
+WEAPON_X = 18
+WEAPON_Y = 20
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen.fill(pygame.Color('black'))
+COLOR = {'black': pygame.Color('black'), 'white': pygame.Color('white'), 'red': pygame.Color('red'),
+         'green': pygame.Color('green'), 'blue': pygame.Color('blue'), 'yellow': pygame.Color('yellow'),
+         'cyan': pygame.Color('cyan'), 'magenta': pygame.Color('magenta'), 'azure': (150, 255, 255),
+         'orange': pygame.Color('orange')}
+
+tile_images = {'wall': load_image('wall.png'), 'empty': load_image('flour.png'),
+               'd_wall': load_image('d_wall.png'), 'wall1': load_image('d_wall.png')}
+potion_images = {"health1": load_image('health1.png', -1), "bullet1": load_image('bullet1.png', -1)}
+player_image = load_image('hero.png', -1)
+player_animation = (load_image('heromove1.png', -1), load_image('heromove2.png', -1))
+player_image1 = pygame.transform.flip(load_image('hero.png', -1), True, False)
+player_animation1 = (pygame.transform.flip(load_image('heromove1.png', -1), True, False),
+                     pygame.transform.flip(load_image('heromove2.png', -1), True, False))
+player_death = load_image('herodeath.png', -1)
+image_sound_on = load_image('volume_on.png')
+image_sound_off = load_image('volume_off.png')
+image_song_on = load_image('song_on.png')
+image_song_off = load_image('song_off.png')
+tile_width = 32
+tile_height = 32
+clock = pygame.time.Clock()
+HEALTH = 5
+PROTECTION = 5
+BULLETS = 200
+HEALTH_POTION1 = 1
+HEALTH_POTION2 = 2
+HEALTH_POTION3 = 4
+BULLET_POTION1 = 30
+BULLET_POTION2 = 60
+BULLET_POTION3 = 120
 
 
 def game():
     global player, potion_group, weapons_group, hero_weapon_group, hero_projectile, enemy_group, \
-        enemy_projectile, hwalls_group, walls_group, all_sprites, enemy_weapon_group, tiles_group, player_group, \
-        tile_width, tile_height, player_image1, player_animation1, COLOR, WEAPON_X, WEAPON_Y, WIDTH, HEIGHT, FPS, \
-        tile_images, potion_images, player_image, player_animation, player_death, HEALTH, PROTECTION, BULLETS, colt, \
+        enemy_projectile, hwalls_group, walls_group, all_sprites, enemy_weapon_group, tiles_group, player_group, colt, \
         colt3, colt4, g_blaster, b_blaster, proof_for_song, proof_for_sound, running, enemy, enemy1, enemy2, h, d, l,\
-        r, screen, HEALTH_POTION1, BULLET_POTION1, BULLET_POTION2, BULLET_POTION3, HEALTH_POTION2, HEALTH_POTION3, \
-        clock, image_sound_on, image_sound_off, image_song_off, image_song_on, open_start_screen, move_map, colt
-    FPS = 200
-    pygame.init()
-    WIDTH = 500
-    HEIGHT = 500
-    WEAPON_X = 18
-    WEAPON_Y = 20
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    screen.fill(pygame.Color('black'))
-    COLOR = {'black': pygame.Color('black'), 'white': pygame.Color('white'), 'red': pygame.Color('red'),
-             'green': pygame.Color('green'), 'blue': pygame.Color('blue'), 'yellow': pygame.Color('yellow'),
-             'cyan': pygame.Color('cyan'), 'magenta': pygame.Color('magenta'), 'azure': (150, 255, 255),
-             'orange': pygame.Color('orange')}
-
-    tile_images = {'wall': load_image('wall.png'), 'empty': load_image('flour.png'),
-                   'd_wall': load_image('d_wall.png'), 'wall1': load_image('d_wall.png')}
-    potion_images = {"health1": load_image('health1.png', -1), "bullet1": load_image('bullet1.png', -1)}
-    player_image = load_image('hero.png', -1)
-    player_animation = (load_image('heromove1.png', -1), load_image('heromove2.png', -1))
-    player_image1 = pygame.transform.flip(load_image('hero.png', -1), True, False)
-    player_animation1 = (pygame.transform.flip(load_image('heromove1.png', -1), True, False),
-                         pygame.transform.flip(load_image('heromove2.png', -1), True, False))
-    player_death = load_image('herodeath.png', -1)
-    image_sound_on = load_image('volume_on.png')
-    image_sound_off = load_image('volume_off.png')
-    image_song_on = load_image('song_on.png')
-    image_song_off = load_image('song_off.png')
-    tile_width = 32
-    tile_height = 32
+        r, screen, clock, open_start_screen, move_map, colt
 
     volume_group = pygame.sprite.Group()
     potion_group = pygame.sprite.Group()
@@ -867,16 +874,6 @@ def game():
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
 
-    clock = pygame.time.Clock()
-    HEALTH = 5
-    PROTECTION = 5
-    BULLETS = 200
-    HEALTH_POTION1 = 1
-    HEALTH_POTION2 = 2
-    HEALTH_POTION3 = 4
-    BULLET_POTION1 = 30
-    BULLET_POTION2 = 60
-    BULLET_POTION3 = 120
     if move_map:
         pllayer = player
         player = generate_level(load_level('map2.txt'))
