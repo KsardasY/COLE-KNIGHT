@@ -39,13 +39,9 @@ def terminate():
 def info_screen():
     fon_info = pygame.transform.scale(load_image('fon_info.png'), (WIDTH, HEIGHT))
     screen.blit(fon_info, (0, 0))
-    intro_text = ["Когда-то давно клан ассасинов ",
-                  "жил в благополучии и мире,",
-                  "но однажды на клан напала", "армия безумного короля.",
-                  "В живых остался только глава клана.",
-                  "С тех пор он пообещал себе,",
-                  "что не успокоится, пока не отомстит",
-                  "за своих соклановцев."]
+    intro_text = ["Когда-то давно клан ассасинов ", "жил в благополучии и мире,", "но однажды на клан напала",
+                  "армия безумного короля.", "В живых остался только глава клана.", "С тех пор он пообещал себе,",
+                  "что не успокоится, пока не отомстит", "за своих соклановцев."]
     font = pygame.font.Font(None, 35)
     text_coord = 80
     for line in intro_text:
@@ -807,110 +803,109 @@ HEALTH_POTION3 = 4
 BULLET_POTION1 = 30
 BULLET_POTION2 = 60
 BULLET_POTION3 = 120
-def first_level():
-    colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
-    colt3 = Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet')
-    colt4 = Weapon(2, 0, 1, 'colt2.png', 1, 1, 0, 'bullet')
-    g_blaster = Weapon(6, 2, 4, 'g_blaster.png', 4, 5, 4, 'laser', 'green')
-    b_blaster = Weapon(6, 2, 4, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
-    hero_weapon_group.add(colt)
-    colt.remove(weapons_group)
-    player, level_x, level_y = generate_level(load_level('map.txt'))
-    enemy = Enemy(10, 13, 29, 'enemy1.png', colt3, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-    enemy1 = Enemy(10, 10, 25, 'enemy1.png', g_blaster, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-    enemy2 = Enemy(10, 12, 21, 'enemy1.png', colt4, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-    running = True
-    camera = Camera()
-    h = False
-    d = False
-    l = False
-    r = False
-    fire = False
-    proof_for_song = True
-    proof_for_sound = True
-    playing_song("song1.ogg")
-    while running:
-        event = None
-        screen.fill((0, 0, 0))
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    pause()
-                elif event.key == pygame.K_a:
-                    l = True
-                elif event.key == pygame.K_w:
-                    h = True
-                elif event.key == pygame.K_s:
-                    d = True
-                elif event.key == pygame.K_d:
-                    r = True
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_a:
-                    l = False
-                elif event.key == pygame.K_w:
-                    h = False
-                elif event.key == pygame.K_s:
-                    d = False
-                elif event.key == pygame.K_d:
-                    r = False
-                if event.key == pygame.K_f:
-                    Potion.update()
-                    Weapon.update()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 4 or event.button == 5:
-                    Weapon.change()
-                if event.button == 1:
-                    if 160 < pygame.mouse.get_pos()[0] < 200 and HEIGHT - 40 <= pygame.mouse.get_pos()[1] <= HEIGHT:
-                        if proof_for_song:
-                            pygame.mixer.music.pause()
-                            proof_for_song = False
-                        else:
-                            pygame.mixer.music.unpause()
-                            proof_for_song = True
-                    elif 160 < pygame.mouse.get_pos()[0] < 200 and HEIGHT - 80 <= pygame.mouse.get_pos()[1] < HEIGHT - 40:
-                        if proof_for_sound:
-                            proof_for_sound = False
-                        else:
-                            proof_for_sound = True
-                    elif pygame.mouse.get_pos()[0] >= 200 or HEIGHT - 80 > pygame.mouse.get_pos()[1]:
-                        fire = True
-            if event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1 and not(pygame.mouse.get_pos()[0] < 50 and pygame.mouse.get_pos()[1] < 50):
-                    fire = False
-        if fire:
-            player.shot()
-        hero_projectile.update()
-        for sprite in enemy_group:
-            sprite.behavior()
-            sprite.update()
-        enemy_projectile.update()
-        player.update()
-        player.animation()
-        camera.update(player)
-        for sprite in all_sprites:
-            camera.apply(sprite)
-        tiles_group.draw(screen)
-        potion_group.draw(screen)
-        walls_group.draw(screen)
-        weapons_group.draw(screen)
-        enemy_group.draw(screen)
-        enemy_weapon_group.draw(screen)
-        player_group.draw(screen)
-        enemy_projectile.draw(screen)
-        hero_projectile.draw(screen)
-        hero_weapon_group.draw(screen)
-        hwalls_group.draw(screen)
-        screen.blit(Panel().image, (0, HEIGHT - 80))
-        clock.tick(FPS)
-        if proof_for_song:
-            screen.blit(image_song_on, (160, HEIGHT - 40))
-        else:
-            screen.blit(image_song_off, (160, HEIGHT - 40))
-        if proof_for_sound:
-            screen.blit(image_sound_on, (160, HEIGHT - 80))
-        else:
-            screen.blit(image_sound_off, (160, HEIGHT - 80))
-        rte = pygame.display.flip()
-        pygame.display.flip()
+colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
+colt3 = Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet')
+colt4 = Weapon(2, 0, 1, 'colt2.png', 1, 1, 0, 'bullet')
+g_blaster = Weapon(6, 2, 4, 'g_blaster.png', 4, 5, 4, 'laser', 'green')
+b_blaster = Weapon(6, 2, 4, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
+hero_weapon_group.add(colt)
+colt.remove(weapons_group)
+player, level_x, level_y = generate_level(load_level('map.txt'))
+enemy = Enemy(10, 13, 29, 'enemy1.png', colt3, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+enemy1 = Enemy(10, 10, 25, 'enemy2.png', g_blaster, 'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+enemy2 = Enemy(100, 12, 21, 'boss.png', colt4, 'bossm1.png', 'bossm2.png', 'bossd.png', 3)
+running = True
+camera = Camera()
+h = False
+d = False
+l = False
+r = False
+fire = False
+proof_for_song = True
+proof_for_sound = True
+playing_song("song.mp3")
+while running:
+    event = None
+    screen.fill((0, 0, 0))
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                pause()
+            elif event.key == pygame.K_a:
+                l = True
+            elif event.key == pygame.K_w:
+                h = True
+            elif event.key == pygame.K_s:
+                d = True
+            elif event.key == pygame.K_d:
+                r = True
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_a:
+                l = False
+            elif event.key == pygame.K_w:
+                h = False
+            elif event.key == pygame.K_s:
+                d = False
+            elif event.key == pygame.K_d:
+                r = False
+            if event.key == pygame.K_f:
+                Potion.update()
+                Weapon.update()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 4 or event.button == 5:
+                Weapon.change()
+            if event.button == 1:
+                if 160 < pygame.mouse.get_pos()[0] < 200 and HEIGHT - 40 <= pygame.mouse.get_pos()[1] <= HEIGHT:
+                    if proof_for_song:
+                        pygame.mixer.music.pause()
+                        proof_for_song = False
+                    else:
+                        pygame.mixer.music.unpause()
+                        proof_for_song = True
+                elif 160 < pygame.mouse.get_pos()[0] < 200 and HEIGHT - 80 <= pygame.mouse.get_pos()[1] < HEIGHT - 40:
+                    if proof_for_sound:
+                        proof_for_sound = False
+                    else:
+                        proof_for_sound = True
+                elif pygame.mouse.get_pos()[0] >= 200 or HEIGHT - 80 > pygame.mouse.get_pos()[1]:
+                    fire = True
+        if event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1 and not(pygame.mouse.get_pos()[0] < 50 and pygame.mouse.get_pos()[1] < 50):
+                fire = False
+    if fire:
+        player.shot()
+    hero_projectile.update()
+    for sprite in enemy_group:
+        sprite.behavior()
+        sprite.update()
+    enemy_projectile.update()
+    player.update()
+    player.animation()
+    camera.update(player)
+    for sprite in all_sprites:
+        camera.apply(sprite)
+    tiles_group.draw(screen)
+    potion_group.draw(screen)
+    walls_group.draw(screen)
+    weapons_group.draw(screen)
+    enemy_group.draw(screen)
+    enemy_weapon_group.draw(screen)
+    player_group.draw(screen)
+    enemy_projectile.draw(screen)
+    hero_projectile.draw(screen)
+    hero_weapon_group.draw(screen)
+    hwalls_group.draw(screen)
+    screen.blit(Panel().image, (0, HEIGHT - 80))
+    clock.tick(FPS)
+    if proof_for_song:
+        screen.blit(image_song_on, (160, HEIGHT - 40))
+    else:
+        screen.blit(image_song_off, (160, HEIGHT - 40))
+    if proof_for_sound:
+        screen.blit(image_sound_on, (160, HEIGHT - 80))
+    else:
+        screen.blit(image_sound_off, (160, HEIGHT - 80))
+    rte = pygame.display.flip()
+    pygame.display.flip()
