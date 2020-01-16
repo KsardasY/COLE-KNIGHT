@@ -311,6 +311,7 @@ class Player(pygame.sprite.Sprite):
                     self.image = player_image1
 
     def update(self):
+        global move_map, open_start_screen, running, enemy_group
         if self.health > 0:
             if l:
                 self.rect.x -= 1
@@ -357,6 +358,10 @@ class Player(pygame.sprite.Sprite):
                 self.rect = self.rect.move(0, self.rect.h - self.imagedeath.get_rect().h)
                 self.image = self.imagedeath
                 self.f = False
+        if pygame.sprite.spritecollideany(self, enemy_group):
+            open_start_screen = False
+            move_map = True
+            running = False
 
     def shot(self):
         if self.health > 0:
@@ -755,7 +760,10 @@ class Enemy(pygame.sprite.Sprite):
         pass
 
 
+move_map = False
 open_start_screen = True
+proof_for_song = True
+proof_for_sound = True
 
 
 def game():
@@ -765,7 +773,7 @@ def game():
         tile_images, potion_images, player_image, player_animation, player_death, HEALTH, PROTECTION, BULLETS, colt, \
         colt3, colt4, g_blaster, b_blaster, proof_for_song, proof_for_sound, running, enemy, enemy1, enemy2, h, d, l,\
         r, screen, HEALTH_POTION1, BULLET_POTION1, BULLET_POTION2, BULLET_POTION3, HEALTH_POTION2, HEALTH_POTION3, \
-        clock, image_sound_on, image_sound_off, image_song_off, image_song_on, open_start_screen
+        clock, image_sound_on, image_sound_off, image_song_off, image_song_on, open_start_screen, move_map
     FPS = 200
     pygame.init()
     WIDTH = 500
@@ -827,13 +835,14 @@ def game():
     b_blaster = Weapon(6, 2, 1, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
     hero_weapon_group.add(colt)
     colt.remove(weapons_group)
-    player, level_x, level_y = generate_level(load_level('map.txt'))
+    if move_map:
+        player, level_x, level_y = generate_level(load_level('map2.txt'))
+    else:
+        player, level_x, level_y = generate_level(load_level('map.txt'))
     h = False
     d = False
     l = False
     r = False
-    proof_for_song = False
-    proof_for_sound = False
     if open_start_screen:
         start_screen()
     enemy = Enemy(10, 13, 29, 'enemy1.png', colt3, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
