@@ -775,6 +775,23 @@ class Enemy(pygame.sprite.Sprite):
         pass
 
 
+class Boss(Enemy):
+    def __init__(self, health, pos_x, pos_y, filename, weapon, animation, animation1, death, brake):
+        super().__init__(health, pos_x, pos_y, filename, weapon, animation, animation1, death, brake)
+
+    def behavior(self):
+        if self.health > 0:
+            if self.k < 2 * FPS:
+                self.go()
+            elif 2 * FPS <= self.k < 3 * FPS:
+                self.stop()
+            else:
+                self.shot()
+            self.k = (self.k + 1) % (3 * FPS + 1)
+        else:
+            self.death()
+
+
 class Particle(pygame.sprite.Sprite):
     def __init__(self, coords):
         super().__init__(all_sprites, particle_group)
@@ -879,6 +896,7 @@ def game():
         player.weapon = pllayer.weapons[pllayer.number_of_weapon]
         player.weapon.remove(weapons_group)
         hero_weapon_group.add(player.weapon)
+        enemy2 = Enemy(5, 5, 19, 'boss.png', colt4, 'bossm1.png', 'bossm2.png', 'bossd.png', 3)
     else:
         colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
         colt3 = Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet')
@@ -888,19 +906,19 @@ def game():
         hero_weapon_group.add(colt)
         colt.remove(weapons_group)
         player, level_x, level_y = generate_level(load_level('map.txt'))
+        enemy = Enemy(10, 13, 29, 'enemy1.png', colt3, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        enemy1 = Enemy(10, 10, 27, 'enemy2.png', g_blaster, 'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        enemy2 = Enemy(100, 12, 21, 'boss.png', colt4, 'bossm1.png', 'bossm2.png', 'bossd.png', 3)
     h = False
     d = False
     l = False
     r = False
     if open_start_screen:
         start_screen()
-    enemy = Enemy(10, 13, 29, 'enemy1.png', colt3, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-    enemy1 = Enemy(10, 10, 27, 'enemy2.png', g_blaster, 'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
-    enemy2 = Enemy(100, 12, 21, 'boss.png', colt4, 'bossm1.png', 'bossm2.png', 'bossd.png', 3)
     camera = Camera()
     fire = False
     if proof_for_song:
-        playing_song("song.mp3")
+        playing_song("song1.ogg")
     running = True
     while running:
         event = None
