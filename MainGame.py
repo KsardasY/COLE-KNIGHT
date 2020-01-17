@@ -16,11 +16,13 @@ def load_image(name, colorkey=None):
     else:
         image = image.convert_alpha()
     return image
+    #функция загрузки изображений
 
 
 def playing_song(name):
     mixer.music.load(os.path.join('data', name))
     mixer.music.play(-1)
+    # функция музыки
 
 
 def playing_sound(name):
@@ -29,6 +31,7 @@ def playing_sound(name):
     if proof_for_sound:
         audio = mixer.Sound(os.path.join('data', name))
         audio.play()
+    # функция звуков
 
 
 def terminate():
@@ -39,9 +42,11 @@ def terminate():
 def create_particles(quantity, coords):
     for _ in range(quantity):
         Particle(coords)
+    # функция создания частиц
 
 
 def finish_screen():
+    # функция создания победного окна
     global open_finish_screen, open_start_screen
     fon_info = pygame.transform.scale(load_image('fon_for_finish.png'), (WIDTH, HEIGHT))
     screen.blit(fon_info, (0, 0))
@@ -64,6 +69,7 @@ def finish_screen():
 
 
 def how_to_play_screen():
+    # функция окна об управлении
     fon_info = pygame.transform.scale(load_image('fon_how_to_play.png'), (WIDTH, HEIGHT))
     screen.blit(fon_info, (0, 0))
     intro_text = ["Ходьба: ",
@@ -97,6 +103,7 @@ def how_to_play_screen():
 
 
 def info_screen():
+    # функция окна сюжета игры
     fon_info = pygame.transform.scale(load_image('fon_info.png'), (WIDTH, HEIGHT))
     screen.blit(fon_info, (0, 0))
     intro_text = ["Когда-то давно клан ассасинов ",
@@ -128,6 +135,7 @@ def info_screen():
 
 
 def pause():
+    # функция паузы и меню во время игры
     global proof_for_song, proof_for_sound, l, h, r, d, running, open_start_screen, move_map
     tiles_group.draw(screen)
     potion_group.draw(screen)
@@ -226,6 +234,7 @@ def pause():
 
 
 def start_screen():
+    # функция стартового окна
     fon = pygame.transform.scale(load_image('fon.png'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
     while True:
@@ -249,6 +258,7 @@ def start_screen():
 
 
 def load_level(filename):
+    # функция открытия текстового файла
     filename = "data/" + filename
     with open(filename, 'r') as mapFile:
         level_map = [line for line in mapFile]
@@ -258,6 +268,7 @@ def load_level(filename):
 
 
 def generate_level(level):
+    # функция в которой создаюстя спрайты карты
     global laser_max_size, move_map
     new_player, x, y = None, None, None
     for y in range(len(level)):
@@ -291,6 +302,7 @@ def generate_level(level):
 
 
 class Tile(pygame.sprite.Sprite):
+    # класс стен и пола карты, статичных вещей
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(tiles_group, all_sprites)
         self.image = tile_images[tile_type]
@@ -312,6 +324,7 @@ class Tile(pygame.sprite.Sprite):
 
 
 class Player(pygame.sprite.Sprite):
+    # класс главного героя
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
         self.coins = 0
@@ -489,6 +502,7 @@ class Camera:
 
 
 class Panel:
+    # класс, показывающий состояние главного героя
     def __init__(self):
         font = pygame.font.Font(None, 24)
         text_health = font.render(str(player.health) + '/' + str(HEALTH), 1, COLOR['white'])
@@ -520,6 +534,7 @@ class Panel:
 
 
 class Projectile(pygame.sprite.Sprite):
+    # класс снарядов и лазера
     def __init__(self, type_of_projectile, initial_coords, final_coords, color, damage):
         super().__init__(all_sprites)
         self.damage = damage
@@ -650,6 +665,7 @@ class Projectile(pygame.sprite.Sprite):
 
 
 class Weapon(pygame.sprite.Sprite):
+    # класс любого оружия
     def __init__(self, damage, cost, rate_of_fire, filename, pos_x, pos_y, butt, type_of_projectile, color=None):
         super().__init__(weapons_group, all_sprites)
         self.cost = cost
@@ -698,6 +714,7 @@ class Weapon(pygame.sprite.Sprite):
 
 
 class Potion(pygame.sprite.Sprite):
+    # класс зелий
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(potion_group, all_sprites)
         if tile_type == "health1":
@@ -723,6 +740,7 @@ class Potion(pygame.sprite.Sprite):
 
 
 class Enemy(pygame.sprite.Sprite):
+    # класс противников, подобных герою
     def __init__(self, health, pos_x, pos_y, filename, weapon, animation, animation1, death, brake):
         super().__init__(enemy_group, all_sprites)
         self.f = True
@@ -799,6 +817,7 @@ class Enemy(pygame.sprite.Sprite):
                 player.coins += 2
                 player.bullets = min(BULLETS, player.bullets + 2)
                 self.weapon.image = self.weapon.main_image
+                create_particles(20, self.rect.center)
                 weapons_group.add(self.weapon)
                 self.weapon.remove(enemy_weapon_group)
                 self.rect = self.rect.move(0, self.rect.height - self.imagedeath.get_rect().height)
@@ -866,6 +885,7 @@ class Enemy(pygame.sprite.Sprite):
 
 
 class Boss(Enemy):
+    # улучшенный противник
     def __init__(self, health, pos_x, pos_y, filename, weapon, animation, animation1, death, brake):
         super().__init__(health, pos_x, pos_y, filename, weapon, animation, animation1, death, brake)
 
@@ -883,6 +903,7 @@ class Boss(Enemy):
 
 
 class Particle(pygame.sprite.Sprite):
+    # класс частиц
     def __init__(self, coords):
         super().__init__(all_sprites, particle_group)
         self.vector = (randint(-3, 3), randint(-3, 3))
@@ -897,7 +918,7 @@ class Particle(pygame.sprite.Sprite):
             self.kill()
         self.c += 1
 
-
+#создание флажков
 move_map = False
 open_start_screen = True
 proof_for_song = True
@@ -911,6 +932,7 @@ WEAPON_X = 18
 WEAPON_Y = 20
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 screen.fill(pygame.Color('black'))
+#основные изображения и прочие необходимые константы
 COLOR = {'black': pygame.Color('black'), 'white': pygame.Color('white'), 'red': pygame.Color('red'),
          'green': pygame.Color('green'), 'blue': pygame.Color('blue'), 'yellow': pygame.Color('yellow'),
          'cyan': pygame.Color('cyan'), 'magenta': pygame.Color('magenta'), 'azure': (150, 255, 255),
@@ -946,6 +968,7 @@ BULLET_POTION3 = 120
 
 
 def game():
+    # функция запуска
     global player, potion_group, weapons_group, hero_weapon_group, hero_projectile, enemy_group, \
         enemy_projectile, hwalls_group, walls_group, all_sprites, enemy_weapon_group, tiles_group, player_group, colt, \
         colt3, colt4, g_blaster, b_blaster, proof_for_song, proof_for_sound, running, enemy, enemy1, enemy2, h, d, l,\
@@ -983,21 +1006,32 @@ def game():
         player.weapon.remove(weapons_group)
         hero_weapon_group.add(pllayer.weapon)
         pllayer = None
-        enemy = Enemy(10, 22, 8, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+        enemy = Enemy(20, 22, 8, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
                       'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        enemy2 = Enemy(5, 5, 19, 'boss.png', colt4, 'bossm1.png', 'bossm2.png', 'bossd.png', 3)
+        enemy = Enemy(20, 24, 8, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+                      'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        enemy = Enemy(20, 29, 14, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+                      'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        enemy = Enemy(20, 22, 12, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+                      'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        enemy = Enemy(20, 23, 15, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+                      'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        enemy = Enemy(20, 25, 16, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+                      'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        boss = Enemy(200, 5, 19, 'boss.png', Weapon(6, 2, 1, 'g_blaster.png', 4, 5, 4, 'laser', 'green'),
+                       'bossm1.png', 'bossm2.png', 'bossd.png', 3)
     else:
         colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
         colt3 = Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet')
         colt4 = Weapon(2, 0, 1, 'colt2.png', 1, 1, 0, 'bullet')
-        g_blaster = Weapon(6, 2, 1, 'g_blaster.png', 4, 5, 4, 'laser', 'green')
-        b_blaster = Weapon(6, 2, 1, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
+        b_blaster = Weapon(6, 40, 23, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
         hero_weapon_group.add(colt)
         colt.remove(weapons_group)
         player, level_x, level_y = generate_level(load_level('map.txt'))
-        enemy = Enemy(10, 13, 29, 'enemy1.png', colt3, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        enemy1 = Enemy(10, 10, 25, 'enemy1.png', g_blaster, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        enemy2 = Enemy(10, 12, 21, 'enemy1.png', colt4, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        enemy = Enemy(10, 13, 29, 'enemy2.png', colt3, 'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        enemy1 = Enemy(10, 10, 25, 'enemy2.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+                       'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        enemy2 = Enemy(10, 12, 21, 'enemy2.png', colt4, 'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
     h = False
     d = False
     l = False
