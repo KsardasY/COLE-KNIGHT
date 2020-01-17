@@ -41,6 +41,61 @@ def create_particles(quantity, coords):
         Particle(coords)
 
 
+def finish_screen():
+    global open_finish_screen, open_start_screen
+    fon_info = pygame.transform.scale(load_image('fon_for_finish.png'), (WIDTH, HEIGHT))
+    screen.blit(fon_info, (0, 0))
+    open_finish_screen = False
+    pygame.mixer.music.pause()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1 and 240 >= pygame.mouse.get_pos()[0] >= 173 and \
+                        324 >= pygame.mouse.get_pos()[1] >= 298:
+                    open_start_screen = True
+                    return
+                elif event.button == 1 and 250 >= pygame.mouse.get_pos()[0] >= 325 and \
+                        324 >= pygame.mouse.get_pos()[1] >= 298:
+                    terminate()
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
+def how_to_play_screen():
+    fon_info = pygame.transform.scale(load_image('fon_how_to_play.png'), (WIDTH, HEIGHT))
+    screen.blit(fon_info, (0, 0))
+    intro_text = ["Ходьба: ",
+                  "W - вверх, S - вниз",
+                  "D - вправо, A - влево",
+                  "F - подобрать предмет",
+                  "LMB - стрельба",
+                  "SPACE - переход в другую карту",
+                  "*для того, чтобы перейти на",
+                  "следущую карту, нужно убить",
+                  "всех врагов"]
+    font = pygame.font.Font(None, 35)
+    text_coord = 80
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 30
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1 and pygame.mouse.get_pos()[0] >= 439 and pygame.mouse.get_pos()[1] <= 30:
+                    return
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 def info_screen():
     fon_info = pygame.transform.scale(load_image('fon_info.png'), (WIDTH, HEIGHT))
     screen.blit(fon_info, (0, 0))
@@ -73,13 +128,14 @@ def info_screen():
 
 
 def pause():
-    global proof_for_song, proof_for_sound, l, h, r, d, running, open_start_screen
+    global proof_for_song, proof_for_sound, l, h, r, d, running, open_start_screen, move_map
     tiles_group.draw(screen)
     potion_group.draw(screen)
     walls_group.draw(screen)
     weapons_group.draw(screen)
     enemy_group.draw(screen)
     enemy_weapon_group.draw(screen)
+    portal_group.draw(screen)
     player_group.draw(screen)
     enemy_projectile.draw(screen)
     hero_projectile.draw(screen)
@@ -95,12 +151,14 @@ def pause():
         screen.blit(image_sound_on, (160, HEIGHT - 80))
     else:
         screen.blit(image_sound_off, (160, HEIGHT - 80))
-    menu = pygame.transform.scale(load_image('menu.png'), (100, 50))
+    menu = pygame.transform.scale(load_image('menu.png'), (100, 95))
     exit = pygame.transform.scale(load_image('exit.png'), (40, 40))
     retry = pygame.transform.scale(load_image('retry.png'), (40, 40))
-    screen.blit(menu, (205, 205))
-    screen.blit(exit, (210, 210))
-    screen.blit(retry, (260, 210))
+    to_menu = pygame.transform.scale(load_image('to_exit_to_menu.png'), (90, 40))
+    screen.blit(menu, (185, 205))
+    screen.blit(exit, (190, 210))
+    screen.blit(retry, (240, 210))
+    screen.blit(to_menu, (190, 255))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -126,13 +184,20 @@ def pause():
                 elif event.key == pygame.K_d:
                     r = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if (event.button == 1 and 210 <= pygame.mouse.get_pos()[0] <= 250 and
+                if (event.button == 1 and 190 <= pygame.mouse.get_pos()[0] <= 230 and
                         210 <= pygame.mouse.get_pos()[1] <= 250):
                     terminate()
-                elif (event.button == 1 and 260 <= pygame.mouse.get_pos()[0] <= 300 and
+                elif (event.button == 1 and 240 <= pygame.mouse.get_pos()[0] <= 280 and
                         210 <= pygame.mouse.get_pos()[1] <= 250):
                     open_start_screen = False
                     running = False
+                    return
+                elif (event.button == 1 and 190 <= pygame.mouse.get_pos()[0] <= 280 and
+                        255 <= pygame.mouse.get_pos()[1] <= 295):
+                    running = False
+                    open_start_screen = True
+                    move_map = False
+                    pygame.mixer.music.pause()
                     return
                 if event.button == 1:
                     if 160 < pygame.mouse.get_pos()[0] < 200 and HEIGHT - 40 <= pygame.mouse.get_pos()[1] <= HEIGHT:
@@ -174,6 +239,11 @@ def start_screen():
                 elif event.button == 1 and pygame.mouse.get_pos()[0] <= 61 and pygame.mouse.get_pos()[1] <= 31:
                     info_screen()
                     screen.blit(fon, (0, 0))
+                elif event.button == 1 and pygame.mouse.get_pos()[0] >= 337 and pygame.mouse.get_pos()[1] <= 29:
+                    how_to_play_screen()
+                    screen.blit(fon, (0, 0))
+                elif event.button == 1 and 134 >= pygame.mouse.get_pos()[0] >= 63 and pygame.mouse.get_pos()[1] <= 31:
+                    terminate()
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -205,6 +275,9 @@ def generate_level(level):
             elif level[y][x] == '@':
                 Tile('empty', x, y)
                 px, py = x, y
+            elif level[y][x] == '%':
+                Tile('empty', x, y)
+                Tile("portal", x, y)
     laser_max_size = int((len(max(level, key=lambda x: len(x))) ** 2 + len(level) ** 2) ** 0.5)
     new_player = Player(px, py)
     for y in range(len(level)):
@@ -230,6 +303,10 @@ class Tile(pygame.sprite.Sprite):
             hwalls_group.add(self)
         elif tile_type == "d_wall":
             self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y + 16)
+        elif tile_type == "portal":
+            portal_group.add(self)
+            self.mask = pygame.mask.from_surface(self.image)
+            self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
         else:
             self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
@@ -321,7 +398,6 @@ class Player(pygame.sprite.Sprite):
                     self.image = player_image1
 
     def update(self):
-        global move_map, open_start_screen, running, enemy_group
         if self.health > 0:
             if l:
                 self.rect.x -= 1
@@ -368,10 +444,25 @@ class Player(pygame.sprite.Sprite):
                 self.rect = self.rect.move(0, self.rect.h - self.imagedeath.get_rect().h)
                 self.image = self.imagedeath
                 self.f = False
-        if pygame.sprite.spritecollideany(self, enemy_group):
-            open_start_screen = False
-            move_map = True
-            running = False
+
+    def portal(self):
+        global open_start_screen, move_map, running, open_finish_screen
+        proof_for_portal = True
+        for j in enemy_group:
+            if j.health > 0:
+                proof_for_portal = False
+        if proof_for_portal:
+            if not move_map:
+                for i in portal_group:
+                    if pygame.sprite.collide_mask(self, i):
+                        open_start_screen = False
+                        move_map = True
+                        running = False
+            else:
+                open_finish_screen = True
+                open_start_screen = True
+                move_map = False
+                running = False
 
     def shot(self):
         if self.health > 0:
@@ -705,7 +796,6 @@ class Enemy(pygame.sprite.Sprite):
                         self.health = max(0, self.health - projectile.damage)
         else:
             if self.f:
-                create_particles(20, self.rect.center)
                 player.coins += 2
                 player.bullets = min(BULLETS, player.bullets + 2)
                 self.weapon.image = self.weapon.main_image
@@ -812,48 +902,57 @@ move_map = False
 open_start_screen = True
 proof_for_song = True
 proof_for_sound = True
+open_finish_screen = False
+FPS = 200
+pygame.init()
+WIDTH = 500
+HEIGHT = 500
+WEAPON_X = 18
+WEAPON_Y = 20
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen.fill(pygame.Color('black'))
+COLOR = {'black': pygame.Color('black'), 'white': pygame.Color('white'), 'red': pygame.Color('red'),
+         'green': pygame.Color('green'), 'blue': pygame.Color('blue'), 'yellow': pygame.Color('yellow'),
+         'cyan': pygame.Color('cyan'), 'magenta': pygame.Color('magenta'), 'azure': (150, 255, 255),
+         'orange': pygame.Color('orange')}
+
+tile_images = {'wall': load_image('wall.png'), 'empty': load_image('flour.png'),
+               "portal": load_image('portal.png', -1),
+               'd_wall': load_image('d_wall.png'), 'wall1': load_image('d_wall.png')}
+potion_images = {"health1": load_image('health1.png', -1), "bullet1": load_image('bullet1.png', -1)}
+player_image = load_image('hero.png', -1)
+player_animation = (load_image('heromove1.png', -1), load_image('heromove2.png', -1))
+player_image1 = pygame.transform.flip(load_image('hero.png', -1), True, False)
+player_animation1 = (pygame.transform.flip(load_image('heromove1.png', -1), True, False),
+                     pygame.transform.flip(load_image('heromove2.png', -1), True, False))
+player_death = load_image('herodeath.png', -1)
+image_sound_on = load_image('volume_on.png')
+image_sound_off = load_image('volume_off.png')
+image_song_on = load_image('song_on.png')
+image_song_off = load_image('song_off.png')
+particle_images = [load_image('bullet2.png', -1), load_image('hearth.png', -1), load_image('coin.png', -1)]
+tile_width = 32
+tile_height = 32
+clock = pygame.time.Clock()
+HEALTH = 5
+PROTECTION = 5
+BULLETS = 200
+HEALTH_POTION1 = 1
+HEALTH_POTION2 = 2
+HEALTH_POTION3 = 4
+BULLET_POTION1 = 30
+BULLET_POTION2 = 60
+BULLET_POTION3 = 120
 
 
 def game():
     global player, potion_group, weapons_group, hero_weapon_group, hero_projectile, enemy_group, \
-        enemy_projectile, hwalls_group, walls_group, all_sprites, enemy_weapon_group, tiles_group, player_group, \
-        tile_width, tile_height, player_image1, player_animation1, COLOR, WEAPON_X, WEAPON_Y, WIDTH, HEIGHT, FPS, \
-        tile_images, potion_images, player_image, player_animation, player_death, HEALTH, PROTECTION, BULLETS, colt, \
+        enemy_projectile, hwalls_group, walls_group, all_sprites, enemy_weapon_group, tiles_group, player_group, colt, \
         colt3, colt4, g_blaster, b_blaster, proof_for_song, proof_for_sound, running, enemy, enemy1, enemy2, h, d, l,\
-        r, screen, HEALTH_POTION1, BULLET_POTION1, BULLET_POTION2, BULLET_POTION3, HEALTH_POTION2, HEALTH_POTION3, \
-        clock, image_sound_on, image_sound_off, image_song_off, image_song_on, open_start_screen, move_map, colt,\
-        particle_group, particle_images
-    FPS = 200
-    pygame.init()
-    WIDTH = 500
-    HEIGHT = 500
-    WEAPON_X = 18
-    WEAPON_Y = 20
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    screen.fill(pygame.Color('black'))
-    COLOR = {'black': pygame.Color('black'), 'white': pygame.Color('white'), 'red': pygame.Color('red'),
-             'green': pygame.Color('green'), 'blue': pygame.Color('blue'), 'yellow': pygame.Color('yellow'),
-             'cyan': pygame.Color('cyan'), 'magenta': pygame.Color('magenta'), 'azure': (150, 255, 255),
-             'orange': pygame.Color('orange')}
-
-    tile_images = {'wall': load_image('wall.png'), 'empty': load_image('flour.png'),
-                   'd_wall': load_image('d_wall.png'), 'wall1': load_image('d_wall.png')}
-    potion_images = {"health1": load_image('health1.png', -1), "bullet1": load_image('bullet1.png', -1)}
-    player_image = load_image('hero.png', -1)
-    player_animation = (load_image('heromove1.png', -1), load_image('heromove2.png', -1))
-    player_image1 = pygame.transform.flip(load_image('hero.png', -1), True, False)
-    player_animation1 = (pygame.transform.flip(load_image('heromove1.png', -1), True, False),
-                         pygame.transform.flip(load_image('heromove2.png', -1), True, False))
-    particle_images = [load_image('bullet2.png', -1), load_image('hearth.png', -1), load_image('coin.png', -1)]
-    player_death = load_image('herodeath.png', -1)
-    image_sound_on = load_image('volume_on.png')
-    image_sound_off = load_image('volume_off.png')
-    image_song_on = load_image('song_on.png')
-    image_song_off = load_image('song_off.png')
-    tile_width = 32
-    tile_height = 32
+        r, screen, clock, open_start_screen, move_map, colt, portal_group, open_finish_screen, particle_group
 
     particle_group = pygame.sprite.Group()
+    portal_group = pygame.sprite.Group()
     volume_group = pygame.sprite.Group()
     potion_group = pygame.sprite.Group()
     weapons_group = pygame.sprite.Group()
@@ -868,16 +967,6 @@ def game():
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
 
-    clock = pygame.time.Clock()
-    HEALTH = 5
-    PROTECTION = 5
-    BULLETS = 200
-    HEALTH_POTION1 = 1
-    HEALTH_POTION2 = 2
-    HEALTH_POTION3 = 4
-    BULLET_POTION1 = 30
-    BULLET_POTION2 = 60
-    BULLET_POTION3 = 120
     if move_map:
         pllayer = player
         player = generate_level(load_level('map2.txt'))
@@ -888,14 +977,14 @@ def game():
         player.fire = pllayer.fire
         player.brake = pllayer.brake
         player.c = pllayer.c
-        player.health = pllayer.health
-        player.protection = pllayer.protection
-        player.bullets = pllayer.bullets
         player.number_of_weapon = pllayer.number_of_weapon
         player.weapons = pllayer.weapons
         player.weapon = pllayer.weapons[pllayer.number_of_weapon]
         player.weapon.remove(weapons_group)
-        hero_weapon_group.add(player.weapon)
+        hero_weapon_group.add(pllayer.weapon)
+        pllayer = None
+        enemy = Enemy(10, 22, 8, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+                      'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
         enemy2 = Enemy(5, 5, 19, 'boss.png', colt4, 'bossm1.png', 'bossm2.png', 'bossd.png', 3)
     else:
         colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
@@ -907,12 +996,14 @@ def game():
         colt.remove(weapons_group)
         player, level_x, level_y = generate_level(load_level('map.txt'))
         enemy = Enemy(10, 13, 29, 'enemy1.png', colt3, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        enemy1 = Enemy(10, 10, 27, 'enemy2.png', g_blaster, 'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
-        enemy2 = Enemy(100, 12, 21, 'boss.png', colt4, 'bossm1.png', 'bossm2.png', 'bossd.png', 3)
+        enemy1 = Enemy(10, 10, 25, 'enemy1.png', g_blaster, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        enemy2 = Enemy(10, 12, 21, 'enemy1.png', colt4, 'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
     h = False
     d = False
     l = False
     r = False
+    if open_finish_screen:
+        finish_screen()
     if open_start_screen:
         start_screen()
     camera = Camera()
@@ -949,6 +1040,8 @@ def game():
                 if event.key == pygame.K_f:
                     Potion.update()
                     Weapon.update()
+                if event.key == pygame.K_SPACE:
+                    player.portal()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 4 or event.button == 5:
                     Weapon.change()
@@ -991,6 +1084,7 @@ def game():
         enemy_group.draw(screen)
         enemy_projectile.draw(screen)
         enemy_weapon_group.draw(screen)
+        portal_group.draw(screen)
         player_group.draw(screen)
         hero_projectile.draw(screen)
         hero_weapon_group.draw(screen)
