@@ -7,6 +7,7 @@ from random import randint
 
 
 def load_image(name, colorkey=None):
+    # функция загрузки изображений
     fullname = os.path.join('data', name)
     image = pygame.image.load(fullname).convert()
     if colorkey is not None:
@@ -16,13 +17,12 @@ def load_image(name, colorkey=None):
     else:
         image = image.convert_alpha()
     return image
-    #функция загрузки изображений
 
 
 def playing_song(name):
+    # функция музыки
     mixer.music.load(os.path.join('data', name))
     mixer.music.play(-1)
-    # функция музыки
 
 
 def playing_sound(name):
@@ -280,9 +280,6 @@ def generate_level(level):
                 Tile('d_wall', x, y)
                 if y != len(level) - 1 and level[y + 1][x] == '#':
                     Tile('wall1', x, y + 0.5)
-            elif level[y][x] == "^":
-                Weapon(2, 0, 1, 'colt2.png', x, y, 0, 'bullet')
-                Tile('empty', x, y)
             elif level[y][x] == '@':
                 Tile('empty', x, y)
                 px, py = x, y
@@ -751,7 +748,7 @@ class Enemy(pygame.sprite.Sprite):
         self.image = self.image1
         self.animation2 = (load_image(animation, -1), load_image(animation1, -1))
         self.animation1 = (pygame.transform.flip(load_image(animation, -1), True, False),
-                             pygame.transform.flip(load_image(animation1, -1), True, False))
+                           pygame.transform.flip(load_image(animation1, -1), True, False))
         self.health = health
         self.rect = self.image.get_rect()
         self.rect.topleft = (pos_x * tile_width, pos_y * tile_height)
@@ -815,7 +812,7 @@ class Enemy(pygame.sprite.Sprite):
         else:
             if self.f:
                 player.coins += 2
-                player.bullets = min(BULLETS, player.bullets + 2)
+                player.bullets = min(BULLETS, player.bullets + 6)
                 self.weapon.image = self.weapon.main_image
                 create_particles(20, self.rect.center)
                 weapons_group.add(self.weapon)
@@ -888,6 +885,7 @@ class Boss(Enemy):
     # улучшенный противник
     def __init__(self, health, pos_x, pos_y, filename, weapon, animation, animation1, death, brake):
         super().__init__(health, pos_x, pos_y, filename, weapon, animation, animation1, death, brake)
+        self.regulator = randint(0, 3 * FPS)
 
     def behavior(self):
         if self.health > 0:
@@ -918,7 +916,7 @@ class Particle(pygame.sprite.Sprite):
             self.kill()
         self.c += 1
 
-#создание флажков
+# создание флажков
 move_map = False
 open_start_screen = True
 proof_for_song = True
@@ -932,7 +930,7 @@ WEAPON_X = 18
 WEAPON_Y = 20
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 screen.fill(pygame.Color('black'))
-#основные изображения и прочие необходимые константы
+# основные изображения и прочие необходимые константы
 COLOR = {'black': pygame.Color('black'), 'white': pygame.Color('white'), 'red': pygame.Color('red'),
          'green': pygame.Color('green'), 'blue': pygame.Color('blue'), 'yellow': pygame.Color('yellow'),
          'cyan': pygame.Color('cyan'), 'magenta': pygame.Color('magenta'), 'azure': (150, 255, 255),
@@ -976,7 +974,6 @@ def game():
 
     particle_group = pygame.sprite.Group()
     portal_group = pygame.sprite.Group()
-    volume_group = pygame.sprite.Group()
     potion_group = pygame.sprite.Group()
     weapons_group = pygame.sprite.Group()
     hero_weapon_group = pygame.sprite.GroupSingle()
@@ -1006,32 +1003,63 @@ def game():
         player.weapon.remove(weapons_group)
         hero_weapon_group.add(pllayer.weapon)
         pllayer = None
-        enemy = Enemy(20, 22, 8, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
-                      'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        enemy = Enemy(20, 24, 8, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
-                      'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        enemy = Enemy(20, 29, 14, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
-                      'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        enemy = Enemy(20, 22, 12, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
-                      'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        enemy = Enemy(20, 23, 15, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
-                      'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        enemy = Enemy(20, 25, 16, 'enemy1.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
-                      'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        boss = Enemy(200, 5, 19, 'boss.png', Weapon(6, 2, 1, 'g_blaster.png', 4, 5, 4, 'laser', 'green'),
-                       'bossm1.png', 'bossm2.png', 'bossd.png', 3)
+        Weapon(6, 2, 3, 'b_blaster.png', 7, 19, 4, 'laser', 'blue')
+        Potion('health1', 23, 5)
+        Potion('health1', 4, 16)
+        Potion('health1', 4, 21)
+        Enemy(20, 33, 18, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+              'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        Enemy(20, 25, 18, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+              'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        Enemy(20, 22, 8, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+              'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        Enemy(20, 24, 8, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+              'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        Enemy(20, 29, 14, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+              'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        Enemy(20, 22, 12, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+              'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        Enemy(20, 23, 15, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+              'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        Enemy(20, 25, 15, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+              'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
+        Boss(150, 57, 7, 'boss.png', Weapon(5, 2, 1, 'g_blaster.png', 4, 5, 4, 'laser', 'green'),
+             'bossm1.png', 'bossm2.png', 'bossd.png', 3)
     else:
         colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
-        colt3 = Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet')
-        colt4 = Weapon(2, 0, 1, 'colt2.png', 1, 1, 0, 'bullet')
-        b_blaster = Weapon(6, 40, 23, 'b_blaster.png', 4, 6, 4, 'laser', 'blue')
+        Weapon(3, 1, 5, 'gun.png', 40, 23, 4, 'bullet')
         hero_weapon_group.add(colt)
         colt.remove(weapons_group)
         player, level_x, level_y = generate_level(load_level('map.txt'))
-        enemy = Enemy(10, 13, 29, 'enemy2.png', colt3, 'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
-        enemy1 = Enemy(10, 10, 25, 'enemy2.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
-                       'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
-        enemy2 = Enemy(10, 12, 21, 'enemy2.png', colt4, 'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        Enemy(10, 12, 27, 'enemy2.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+              'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        Enemy(10, 8, 25, 'enemy2.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+              'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        Enemy(10, 12, 21, 'enemy2.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+              'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        Enemy(10, 6, 29, 'enemy2.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+              'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        Enemy(10, 4, 26, 'enemy2.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+              'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        Enemy(10, 1, 21, 'enemy2.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+              'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        Potion('health1', 43, 20)
+        Potion('bullet1', 35, 20)
+        Potion('health1', 25, 57)
+        Potion('bullet1', 25, 48)
+        Weapon(20, 6, 1, 'rifle.png', 30, 55, 4, 'bullet')
+        Enemy(10, 1, 41, 'enemy2.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+              'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        Enemy(10, 12, 41, 'enemy2.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+              'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        Enemy(10, 4, 44, 'enemy2.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+              'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        Enemy(10, 12, 47, 'enemy2.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+              'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        Enemy(10, 5, 49, 'enemy2.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+              'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
+        Enemy(10, 1, 52, 'enemy2.png', Weapon(2, 0, 1, 'colt3.png', 1, 1, 0, 'bullet'),
+              'enemy2m1.png', 'enemy2m2.png', 'enemy2d.png', 3)
     h = False
     d = False
     l = False
@@ -1137,4 +1165,6 @@ def game():
         pygame.display.flip()
     if not running:
         game()
+
+
 game()
