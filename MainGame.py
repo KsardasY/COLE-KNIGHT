@@ -61,7 +61,7 @@ def finish_screen():
                         324 >= pygame.mouse.get_pos()[1] >= 298:
                     open_start_screen = True
                     return
-                elif event.button == 1 and 250 >= pygame.mouse.get_pos()[0] >= 325 and \
+                elif event.button == 1 and 325 >= pygame.mouse.get_pos()[0] >= 250 and \
                         324 >= pygame.mouse.get_pos()[1] >= 298:
                     terminate()
         pygame.display.flip()
@@ -681,11 +681,11 @@ class Weapon(pygame.sprite.Sprite):
             if pygame.sprite.spritecollideany(weap, player_group):
                 if len(player.weapons) != 2:
                     player.weapon.remove(hero_weapon_group)
-                    player.weapon = weap
-                    hero_weapon_group.add(player.weapon)
+                    hero_weapon_group.add(weap)
                     weap.remove(weapons_group)
                     player.weapons.append(weap)
                     player.number_of_weapon = 1
+                    player.weapon = player.weapons[player.number_of_weapon]
                 else:
                     weapons_group.add(player.weapon)
                     player.weapon.image = player.weapon.main_image
@@ -990,7 +990,7 @@ def game():
     if move_map:
         pllayer = player
         player = generate_level(load_level('map2.txt'))
-        player.coins = pllayer.coins
+        player.coins = 24
         player.f = pllayer.f
         player.regulator = pllayer.regulator
         player.regenerator = pllayer.regenerator
@@ -1001,7 +1001,7 @@ def game():
         player.weapons = pllayer.weapons
         player.weapon = pllayer.weapons[pllayer.number_of_weapon]
         player.weapon.remove(weapons_group)
-        hero_weapon_group.add(pllayer.weapon)
+        hero_weapon_group.add(player.weapon)
         pllayer = None
         Weapon(6, 2, 3, 'b_blaster.png', 7, 19, 4, 'laser', 'blue')
         Potion('health1', 23, 5)
@@ -1023,7 +1023,7 @@ def game():
               'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
         Enemy(20, 25, 15, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
               'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        Boss(150, 57, 7, 'boss.png', Weapon(5, 2, 1, 'g_blaster.png', 4, 5, 4, 'laser', 'green'),
+        Boss(150, 57, 7, 'boss.png', Weapon(5, 57, 7, 'g_blaster.png', 4, 5, 4, 'laser', 'green'),
              'bossm1.png', 'bossm2.png', 'bossd.png', 3)
     else:
         colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
@@ -1105,8 +1105,9 @@ def game():
                 if event.key == pygame.K_SPACE:
                     player.portal()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 4 or event.button == 5:
-                    Weapon.change()
+                if player.health > 0:
+                    if event.button == 4 or event.button == 5:
+                        Weapon.change()
                 if event.button == 1:
                     if 160 < pygame.mouse.get_pos()[0] < 200 and HEIGHT - 40 <= pygame.mouse.get_pos()[1] <= HEIGHT:
                         if proof_for_song:
