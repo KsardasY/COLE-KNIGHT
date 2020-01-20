@@ -2,7 +2,6 @@ import pygame
 import os
 import sys
 from math import ceil, atan, degrees, sin, radians
-from pygame import mixer
 from random import randint
 
 
@@ -21,15 +20,15 @@ def load_image(name, colorkey=None):
 
 def playing_song(name):
     # функция музыки
-    mixer.music.load(os.path.join('data', name))
-    mixer.music.play(-1)
+    pygame.mixer.music.load(os.path.join('data', name))
+    pygame.mixer.music.play(-1)
 
 
 def playing_sound(name):
-    mixer.pre_init(44100, -16, 1, 512)
-    mixer.init()
+    pygame.mixer.pre_init(44100, -16, 1, 512)
+    pygame.mixer.init()
     if proof_for_sound:
-        audio = mixer.Sound(os.path.join('data', name))
+        audio = pygame.mixer.Sound(os.path.join('data', name))
         audio.play()
     # функция звуков
 
