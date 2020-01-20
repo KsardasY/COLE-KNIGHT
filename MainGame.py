@@ -324,8 +324,9 @@ class Player(pygame.sprite.Sprite):
     # класс главного героя
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
-        self.coins = 0
         self.f = True
+        self.next_level = True
+        self.coins = 0
         self.regulator = 0
         self.regenerator = -1
         self.fire = True
@@ -628,7 +629,9 @@ class Projectile(pygame.sprite.Sprite):
             self.y = 0
             self.coefficient_x = abs(self.initial_coords[0] - self.final_coords[0])
             self.coefficient_y = abs(self.initial_coords[1] - self.final_coords[1])
-            if self.rect.center[0] >= self.final_coords[0] and self.rect.center[1] >= self.final_coords[1]:
+            if self.coefficient_y == self.coefficient_x == 0:
+                self.vector = (0, 0)
+            elif self.rect.center[0] >= self.final_coords[0] and self.rect.center[1] >= self.final_coords[1]:
                 self.unit_vector = 3 / (self.coefficient_x + self.coefficient_y)
                 self.vector = (- self.unit_vector * self.coefficient_x, - self.unit_vector * self.coefficient_y)
             elif self.rect.center[0] <= self.final_coords[0] and self.rect.center[1] <= self.final_coords[1]:
@@ -885,7 +888,7 @@ class Boss(Enemy):
     # улучшенный противник
     def __init__(self, health, pos_x, pos_y, filename, weapon, animation, animation1, death, brake):
         super().__init__(health, pos_x, pos_y, filename, weapon, animation, animation1, death, brake)
-        self.regulator = randint(0, 3 * FPS)
+        self.regulator = 0
 
     def behavior(self):
         if self.health > 0:
@@ -915,6 +918,7 @@ class Particle(pygame.sprite.Sprite):
         if self.c == 10:
             self.kill()
         self.c += 1
+
 
 # создание флажков
 move_map = False
@@ -963,15 +967,35 @@ HEALTH_POTION3 = 4
 BULLET_POTION1 = 30
 BULLET_POTION2 = 60
 BULLET_POTION3 = 120
+next_level = True
+delete = False
 
 
 def game():
     # функция запуска
     global player, potion_group, weapons_group, hero_weapon_group, hero_projectile, enemy_group, \
-        enemy_projectile, hwalls_group, walls_group, all_sprites, enemy_weapon_group, tiles_group, player_group, colt, \
-        colt3, colt4, g_blaster, b_blaster, proof_for_song, proof_for_sound, running, enemy, enemy1, enemy2, h, d, l,\
-        r, screen, clock, open_start_screen, move_map, colt, portal_group, open_finish_screen, particle_group
+        enemy_projectile, hwalls_group, walls_group, all_sprites, enemy_weapon_group, tiles_group, player_group, colt,\
+        proof_for_song, proof_for_sound, running, enemy, enemy1, enemy2, h, d, l, r, screen, clock, open_start_screen,\
+        move_map, colt, portal_group, open_finish_screen, particle_group, next_level, delete, PLAYER_HEALTH, \
+        PLAYER_HEALTH, PLAYER_BULLETS, PLAYER_PROTECTION, PLAYER_REGULATOR, PLAYER_REGENERATOR, PLAYER_C, \
+        PLAYER_WEAPONS, PLAYER_NUMBER_OF_WEAPON
 
+    if next_level and move_map:
+        print(123)
+        PLAYER_HEALTH = player.health
+        PLAYER_BULLETS = player.bullets
+        PLAYER_PROTECTION = player.protection
+        PLAYER_REGULATOR = player.regulator
+        PLAYER_REGENERATOR = player.regenerator
+        PLAYER_WEAPONS = player.weapons
+        PLAYER_NUMBER_OF_WEAPON = player.number_of_weapon
+        PLAYER_C = player.c
+        next_level = False
+    if delete:
+        for sprite in all_sprites:
+            sprite.kill()
+    else:
+        delete = True
     particle_group = pygame.sprite.Group()
     portal_group = pygame.sprite.Group()
     potion_group = pygame.sprite.Group()
@@ -988,42 +1012,43 @@ def game():
     player_group = pygame.sprite.Group()
 
     if move_map:
-        pllayer = player
+        colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
         player = generate_level(load_level('map2.txt'))
         player.coins = 24
-        player.f = pllayer.f
-        player.regulator = pllayer.regulator
-        player.regenerator = pllayer.regenerator
-        player.fire = pllayer.fire
-        player.brake = pllayer.brake
-        player.c = pllayer.c
-        player.number_of_weapon = pllayer.number_of_weapon
-        player.weapons = pllayer.weapons
-        player.weapon = pllayer.weapons[pllayer.number_of_weapon]
-        player.weapon.remove(weapons_group)
+        player.health = PLAYER_HEALTH
+        player.protection = PLAYER_PROTECTION
+        player.bullets = PLAYER_BULLETS
+        player.c = PLAYER_C
+        player.regenerator = PLAYER_REGENERATOR
+        player.regulator = PLAYER_REGULATOR
+        player.weapons = PLAYER_WEAPONS
+        player.number_of_weapon = PLAYER_NUMBER_OF_WEAPON
+        colt.kill()
+        player.weapon = PLAYER_WEAPONS[player.number_of_weapon]
+        for sprite in PLAYER_WEAPONS:
+            all_sprites.add(sprite)
         hero_weapon_group.add(player.weapon)
-        pllayer = None
         Weapon(6, 2, 3, 'b_blaster.png', 7, 19, 4, 'laser', 'blue')
         Potion('health1', 23, 5)
         Potion('health1', 4, 16)
         Potion('health1', 4, 21)
-        Enemy(20, 33, 18, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+        Enemy(20, 33, 18, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 21, 8, 0, 'bullet'),
               'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        Enemy(20, 25, 18, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+        Enemy(20, 25, 18, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 21, 8, 0, 'bullet'),
               'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        Enemy(20, 22, 8, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+        Enemy(20, 22, 8, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 21, 8, 0, 'bullet'),
               'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        Enemy(20, 24, 8, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+        Enemy(20, 24, 8, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 21, 8, 0, 'bullet'),
               'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        Enemy(20, 29, 14, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+        Enemy(20, 29, 14, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 21, 8, 0, 'bullet'),
               'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        Enemy(20, 22, 12, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+        Enemy(20, 22, 12, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 21, 8, 0, 'bullet'),
               'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        Enemy(20, 23, 15, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+        Enemy(20, 23, 15, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 21, 8, 0, 'bullet'),
               'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        Enemy(20, 25, 15, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 1, 1, 0, 'bullet'),
+        Enemy(20, 25, 15, 'enemy1.png', Weapon(3, 0, 1, 'colt2.png', 21, 8, 0, 'bullet'),
               'enemy1m1.png', 'enemy1m2.png', 'enemy1d.png', 3)
-        Boss(150, 57, 7, 'boss.png', Weapon(5, 57, 7, 'g_blaster.png', 4, 5, 4, 'laser', 'green'),
+        Boss(150, 57, 7, 'boss.png', Weapon(4, 2, 1, 'g_blaster.png', 57, 7, 4, 'laser', 'green'),
              'bossm1.png', 'bossm2.png', 'bossd.png', 3)
     else:
         colt = Weapon(2, 0, 1, 'colt.png', 1, 1, 0, 'bullet')
