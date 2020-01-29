@@ -434,14 +434,14 @@ class Player(pygame.sprite.Sprite):
                     if projectile.type_of_projectile == 'bullet':
                         self.regenerator = -1
                         self.regulator = -1
-                        self.health = max(0, min(self.health + self.protection - projectile.damage, HEALTH))
+                        self.health = max(0, min(self.health + self.protection - projectile.damage, self.health))
                         self.protection = max(0, self.protection - projectile.damage)
                         playing_sound("for_gun_1.ogg")
                         projectile.kill()
                     elif projectile.proof_for_damage:
                         self.regenerator = -1
                         self.regulator = -1
-                        self.health = max(0, min(self.health + self.protection - projectile.damage, HEALTH))
+                        self.health = max(0, min(self.health + self.protection - projectile.damage, self.health))
                         self.protection = max(0, self.protection - projectile.damage)
             if self.regulator == 5 * FPS:
                 self.regenerator = (self.regenerator + 1) % (2 * FPS)
@@ -980,7 +980,6 @@ def game():
         PLAYER_WEAPONS, PLAYER_NUMBER_OF_WEAPON
 
     if next_level and move_map:
-        print(123)
         PLAYER_HEALTH = player.health
         PLAYER_BULLETS = player.bullets
         PLAYER_PROTECTION = player.protection
