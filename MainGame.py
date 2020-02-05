@@ -347,6 +347,7 @@ class Player(pygame.sprite.Sprite):
         hero_weapon_group.add(self.weapon)
 
     def animation(self):
+        # функция поворота оружия и анимации игрока
         if self.health > 0:
             if pygame.mouse.get_pos()[0] > self.rect.x + 18:
                 self.weapon.rect.topleft = (self.rect.x + WEAPON_X - self.weapon.butt, self.rect.y + WEAPON_Y)
@@ -408,6 +409,7 @@ class Player(pygame.sprite.Sprite):
                     self.image = player_image1
 
     def update(self):
+        # функция перемещения игрока
         if self.health > 0:
             if l:
                 self.rect.x -= 1
@@ -456,6 +458,7 @@ class Player(pygame.sprite.Sprite):
                 self.f = False
 
     def portal(self):
+        # функция перехода на следующий уровень
         global open_start_screen, move_map, running, open_finish_screen
         proof_for_portal = True
         for j in enemy_group:
@@ -475,6 +478,7 @@ class Player(pygame.sprite.Sprite):
                 running = False
 
     def shot(self):
+        # функция выстрелов
         if self.health > 0:
             if self.bullets >= self.weapon.cost and self.fire:
                 player.bullets -= player.weapon.cost
@@ -485,6 +489,7 @@ class Player(pygame.sprite.Sprite):
 
 
 class Camera:
+    # класс который отвечает за следование камеры за игроком
     def __init__(self):
         self.dx = 0
         self.dy = 0
@@ -645,6 +650,7 @@ class Projectile(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
+        # функция звука выстрела и перемещения снаряда и удаления его же
         if self.type_of_projectile == 'laser':
             if self.c == 0:
                 playing_sound("lazer.ogg")
@@ -679,6 +685,7 @@ class Weapon(pygame.sprite.Sprite):
         self.color = color
 
     def update(*args):
+        # функция подбора оружия.
         for weap in weapons_group:
             if pygame.sprite.spritecollideany(weap, player_group):
                 if len(player.weapons) != 2:
@@ -699,6 +706,7 @@ class Weapon(pygame.sprite.Sprite):
                     player.weapons.insert(player.number_of_weapon, weap)
 
     def change(*args):
+        # функция смены оружия
         if len(player.weapons) == 2:
             if player.number_of_weapon == 0:
                 player.weapon.remove(hero_weapon_group)
@@ -727,6 +735,7 @@ class Potion(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(tile_width * pos_x + 10, tile_height * pos_y + 10)
 
     def update(*args):
+        # функция использования зелья
         for pot in potion_group:
             if pygame.sprite.spritecollideany(pot, player_group):
                 player.health += pot.health_potion
@@ -762,6 +771,7 @@ class Enemy(pygame.sprite.Sprite):
         self.regulator = 0
 
     def update(self):
+        # функция поворота оружия у противника
         if self.health > 0:
             if player.rect.center[0] > self.rect.x + 15:
                 self.weapon.rect.topleft = (self.rect.x + WEAPON_X - self.weapon.butt, self.rect.y + WEAPON_Y)
@@ -824,6 +834,7 @@ class Enemy(pygame.sprite.Sprite):
                 self.f = False
 
     def go(self):
+        # функция перемещения врагов и их анимации
         if self.regulator == 0:
             if player.rect.center[0] > self.rect.center[0]:
                 self.rect.x += 1
@@ -857,6 +868,7 @@ class Enemy(pygame.sprite.Sprite):
         self.c += 1
 
     def stop(self):
+        # функция остановки врага
         self.c = 0
         if self.rect.center[0] >= player.rect.center[0]:
             self.image = self.image2
@@ -864,10 +876,12 @@ class Enemy(pygame.sprite.Sprite):
             self.image = self.image1
 
     def shot(self):
+        # функция стрельбы врагов
         enemy_projectile.add(Projectile(self.weapon.type_of_projectile, self.weapon.rect.center, player.rect.center,
                                         self.weapon.color, self.weapon.damage))
 
     def behavior(self):
+        # функция интелекта врагов
         if self.health > 0:
             if self.k < 2 * FPS:
                 self.go()
@@ -890,6 +904,7 @@ class Boss(Enemy):
         self.regulator = 0
 
     def behavior(self):
+        # функция интелекта противника
         if self.health > 0:
             if self.k < 2 * FPS:
                 self.go()
@@ -913,6 +928,7 @@ class Particle(pygame.sprite.Sprite):
         self.c = 0
 
     def update(self):
+        # функция перемещения и удаления частиц
         self.rect = self.rect.move(self.vector)
         if self.c == 10:
             self.kill()
