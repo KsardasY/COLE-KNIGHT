@@ -881,7 +881,7 @@ class Enemy(pygame.sprite.Sprite):
                                         self.weapon.color, self.weapon.damage))
 
     def behavior(self):
-        # функция интелекта врагов
+        # функция интеллекта врагов
         if self.health > 0:
             if self.k < 2 * FPS:
                 self.go()
@@ -904,7 +904,7 @@ class Boss(Enemy):
         self.regulator = 0
 
     def behavior(self):
-        # функция интелекта противника
+        # функция интеллекта противника
         if self.health > 0:
             if self.k < 2 * FPS:
                 self.go()
