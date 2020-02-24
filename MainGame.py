@@ -766,7 +766,7 @@ class Enemy(pygame.sprite.Sprite):
         self.weapon = weapon
         enemy_weapon_group.add(self.weapon)
         self.weapon.remove(weapons_group)
-        self.k = randint(0, 4 * FPS)
+        self.k = randint(0, 4 * FPS - 1)
         self.c = 0
         self.regulator = 0
 
