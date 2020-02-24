@@ -902,6 +902,7 @@ class Boss(Enemy):
     def __init__(self, health, pos_x, pos_y, filename, weapon, animation, animation1, death, brake):
         super().__init__(health, pos_x, pos_y, filename, weapon, animation, animation1, death, brake)
         self.regulator = 0
+        self.k = randint(0, 3 * FPS - 1)
 
     def behavior(self):
         # функция интеллекта противника
