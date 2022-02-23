@@ -1,2 +1,2 @@
-# SOUL_KNIGHT
-project2
+# COLE_KNIGHT
+Yandex Lyceum 2nd project
